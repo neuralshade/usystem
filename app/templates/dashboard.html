@@ -5,13 +5,14 @@
     <header class="dashboard-header">
         <div>
             <h1>Painel de Controle</h1>
-            <p>Bem-vindo, <span id="userName" style="font-weight: bold; color: var(--primary);">...</span> (<span id="userRole">...</span>)</p>
+            <p>Bem-vindo, <span id="userName" style="font-weight: bold; color: var(--primary);">...</span> (<span
+                    id="userRole">...</span>)</p>
         </div>
         <button class="btn btn-alt" onclick="logout()">Sair</button>
     </header>
 
     <div id="dashboardContent" class="dashboard-grid">
-        </div>
+    </div>
 </div>
 
 <script>
@@ -121,15 +122,15 @@
 
     async function addStudent() {
         const studentId = document.getElementById('newStudentId').value;
-        const mentorId = localStorage.getItem('id'); 
-        
+        const mentorId = localStorage.getItem('id');
+
         if (!studentId) return alert('Informe o ID do aluno.');
-        
-        const res = await fetchAPI('/api/assign-mentor', 'POST', { 
-            student_id: studentId, 
-            mentor_id: mentorId 
+
+        const res = await fetchAPI('/api/assign-mentor', 'POST', {
+            student_id: studentId,
+            mentor_id: mentorId
         });
-        
+
         if (res.ok) {
             alert('Aluno adicionado com sucesso!');
             document.getElementById('newStudentId').value = '';
@@ -152,7 +153,7 @@
             headers: { 'Authorization': `Bearer ${token}` },
             body: formData
         });
-        
+
         if (res.ok) {
             alert('Arquivo enviado!');
             loadFiles();
@@ -166,12 +167,11 @@
         const classes = await res.json();
         const list = document.getElementById('classList');
         list.innerHTML = classes.map(c => `
-            <div class="item">
-                <strong>${c.title}</strong><br>
-                <small>${new Date(c.date).toLocaleString()}</small><br>
-                <a href="${c.link}" target="_blank">Acessar Aula 🔗</a>
-            </div>
-        `).join('') || 'Nenhuma aula agendada.';
+        <div class="item">
+            <strong>${c.title}</strong><br>
+            <small>${new Date(c.datetime).toLocaleString()}</small><br> <a href="${c.link}" target="_blank">Acessar Aula 🔗</a>
+        </div>
+    `).join('') || 'Nenhuma aula agendada.';
     }
 
     async function loadMyStudents() {
@@ -192,7 +192,7 @@
         const list = document.getElementById(role === 'student' ? 'meetingList' : 'meetingList'); // Simplificado
         // Se for professor, pode mostrar em um lugar específico ou junto
         const target = role === 'student' ? document.getElementById('meetingList') : document.getElementById('myStudentsList');
-        
+
         let html = meetings.map(m => `
             <div class="item" style="border-left: 4px solid var(--secondary);">
                 <strong>${m.description}</strong><br>
@@ -200,8 +200,8 @@
                 <a href="${m.link}" target="_blank">Link da Reunião 🎥</a>
             </div>
         `).join('');
-        
-        if(role === 'student') list.innerHTML = html || 'Nenhuma reunião marcada.';
+
+        if (role === 'student') list.innerHTML = html || 'Nenhuma reunião marcada.';
     }
 
     async function loadFiles() {
@@ -218,9 +218,9 @@
 
     async function createClass() {
         const title = document.getElementById('classTitle').value;
-        const date = document.getElementById('classDate').value;
+        const datetime = document.getElementById('classDate').value;
         const link = document.getElementById('classLink').value;
-        const res = await fetchAPI('/api/classes', 'POST', { title, date, link });
+        const res = await fetchAPI('/api/classes', 'POST', { title, datetime, link });
         if (res.ok) loadClasses();
     }
 
@@ -237,11 +237,50 @@
 </script>
 
 <style>
-    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
-    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .item { background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); }
-    .btn-sm { font-size: 0.8rem; padding: 4px 8px; background: var(--primary); color: white; border-radius: 4px; text-decoration: none; float: right; }
-    hr { margin: 15px 0; border: 0; border-top: 1px solid #eee; }
-    input { width: 100%; padding: 8px; margin-bottom: 5px; border: 1px solid #ddd; border-radius: 4px; }
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .item {
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 4px solid var(--primary);
+    }
+
+    .btn-sm {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+        background: var(--primary);
+        color: white;
+        border-radius: 4px;
+        text-decoration: none;
+        float: right;
+    }
+
+    hr {
+        margin: 15px 0;
+        border: 0;
+        border-top: 1px solid #eee;
+    }
+
+    input {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
 </style>
 {% endblock %}
