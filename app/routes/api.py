@@ -2,9 +2,9 @@ import os
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename
 from app.extensions import db, bcrypt
-from app.models.models import User, MentorStudent, Meeting, Class, ClassEnrollment, File
+from app.models import User, MentorStudent, Meeting, Class, ClassEnrollment, File
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
-from app.models.models import StudyPlan, StudyTask, ExamResult
+from app.models import StudyPlan, StudyTask, ExamResult
 from flask import send_from_directory
 
 api_bp = Blueprint('api', __name__)
