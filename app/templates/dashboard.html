@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Painel Principal</h2>
+    <div id="content">Carregando...</div>
+    <button onclick="logout()">Sair</button>
+
+    <script>
+        // Função para carregar as aulas usando o JWT
+        async function loadClasses() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/';
+                return;
+            }
+
+            const response = await fetch('/api/classes', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const classes = await response.json();
+                let html = "<h3>Aulas Disponíveis</h3><ul>";
+                classes.forEach(c => html += `<li>${c.title} - <a href="${c.link}">Acessar</a></li>`);
+                html += "</ul>";
+                document.getElementById('content').innerHTML = html;
+            } else {
+                document.getElementById('content').innerHTML = "Erro ao carregar os dados ou sessão expirada.";
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
+        loadClasses();
+    </script>
+{% endblock %}
