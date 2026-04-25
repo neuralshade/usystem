@@ -31,9 +31,16 @@ def login():
     user = User.query.filter_by(email=data.get('email')).first()
     if user and bcrypt.check_password_hash(user.password_hash, data.get('password')):
         token = create_access_token(identity=str(user.id), additional_claims={"role": user.role, "name": user.name})
-        # Correção: Enviar 'role' e 'name' diretamente na resposta da API
-        return jsonify({"access_token": token, "role": user.role, "name": user.name}), 200
+        # Retornando também o 'id'
+        return jsonify({"access_token": token, "role": user.role, "name": user.name, "id": user.id}), 200
     return jsonify({"error": "Credenciais inválidas"}), 401
+
+@api_bp.route('/my-students', methods=['GET'])
+@jwt_required()
+def get_my_students():
+    current_user_id = int(get_jwt_identity())
+    students = db.session.query(User).join(MentorStudent, MentorStudent.student_id == User.id).filter(MentorStudent.mentor_id == current_user_id).all()
+    return jsonify([{"id": s.id, "name": s.name, "email": s.email} for s in students]), 200
 
 @api_bp.route('/users', methods=['GET'])
 @jwt_required()
@@ -124,8 +131,9 @@ def handle_classes():
         return jsonify({"message": "Aula criada com sucesso"}), 201
         
     if request.method == 'GET':
-        classes = Class.query.all()
-        return jsonify([{"id": c.id, "title": c.title, "datetime": c.datetime, "link": c.link} for c in classes]), 200
+        # Fazemos um JOIN com a tabela User para pegar o nome do professor
+        classes = db.session.query(Class, User.name.label('teacher_name')).join(User, Class.teacher_id == User.id).all()
+        return jsonify([{"id": c.Class.id, "title": c.Class.title, "datetime": c.Class.datetime, "link": c.Class.link, "teacher_name": c.teacher_name} for c in classes]), 200
 
 @api_bp.route('/classes/<int:id>/enroll', methods=['POST'])
 @jwt_required()

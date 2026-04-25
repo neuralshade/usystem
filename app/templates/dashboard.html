@@ -1,264 +1,187 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="nav">
-    <div>Bem-vindo, <strong id="userName"></strong> (<span id="userRole"></span>)</div>
-    <a href="#" onclick="logout()">Sair</a>
+<style>
+    :root { --primary: #4a90e2; --secondary: #f39c12; --success: #27ae60; --dark: #2c3e50; }
+    .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-5px); }
+    .card h3 { color: var(--dark); border-left: 4px solid var(--primary); padding-left: 10px; margin-top: 0; }
+    .btn { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px; }
+    .btn-alt { background: var(--success); }
+    .badge { background: #e1f5fe; color: #01579b; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; }
+    .item-card { border: 1px solid #eee; padding: 12px; border-radius: 8px; margin-bottom: 10px; background: #fafafa; }
+    input, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; }
+</style>
+
+<div class="dashboard-container">
+    <div class="header-box">
+        <div>
+            <h1>Olá, <span id="userName">Usuário</span>!</h1>
+            <p id="userRoleBadge" class="badge">Carregando perfil...</p>
+        </div>
+        <button class="btn" style="width: auto; background: #e74c3c;" onclick="logout()">Sair</button>
+    </div>
+
+    <div id="dynamicSections" class="grid">
+        </div>
 </div>
 
-<h2>Painel Principal</h2>
-<div id="content">Carregando interface...</div>
-
 <script>
-    const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
+    const token = localStorage.getItem('token');
     const name = localStorage.getItem('name');
 
-    if (!token) window.location.href = '/';
+    if (!token) window.location.href = '/login';
 
-    document.getElementById('userName').textContent = name;
-    const roleNames = { 'student': 'Aluno', 'mentor': 'Mentor', 'teacher': 'Professor' };
-    document.getElementById('userRole').textContent = roleNames[role];
+    document.getElementById('userName').innerText = name;
+    document.getElementById('userRoleBadge').innerText = role.toUpperCase();
 
-    async function fetchAPI(url, options = {}) {
-        options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
-        const response = await fetch(url, options);
-        if (response.status === 401 || response.status === 422) logout();
-        return response;
+    async function fetchAPI(endpoint, method = 'GET', body = null) {
+        const options = {
+            method,
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        };
+        if (body) options.body = JSON.stringify(body);
+        return fetch(endpoint, options);
     }
 
     async function loadDashboard() {
-        let html = "";
+        const sections = document.getElementById('dynamicSections');
+        sections.innerHTML = '';
 
-        if (role === 'student') {
-            html += `
-        <div class="card" style="background-color: #e8f5e9; border-color: #c8e6c9;">
-            <h3>Suporte 24h</h3>
-            <div id="mentorContact">Carregando contato do mentor...</div>
-        </div>
+        // 1. SEÇÃO DE AULAS (Comum a todos, mas com funções diferentes)
+        let classesHtml = `
+            <div class="card">
+                <h3>📚 Aulas Disponíveis</h3>
+                ${role === 'teacher' ? `
+                    <input type="text" id="classTitle" placeholder="Título da Aula">
+                    <input type="datetime-local" id="classDate">
+                    <input type="url" id="classLink" placeholder="Link da Transmissão">
+                    <button class="btn" onclick="createClass()">Agendar Nova Aula</button>
+                    <hr>` : ''}
+                <div id="classList">Carregando aulas...</div>
+            </div>`;
 
-        <div class="card">
-            <h3>Meu Cronograma Semanal (Metas)</h3>
-            <div id="tasksList">Carregando metas...</div>
-        </div>
-
-        <div class="card">
-            <h3>Acompanhamento de Desempenho</h3>
-            <div id="examsList">Carregando simulados...</div>
-            <hr>
-            <h4>Registrar Resultado de Simulado</h4>
-            <input type="text" id="examTitle" placeholder="Nome do Simulado (ex: Simulado ENEM 1)">
-            <input type="number" step="0.1" id="examScore" placeholder="Nota/Pontuação">
-            <input type="date" id="examDate">
-            <button onclick="submitExamResult()">Salvar Resultado</button>
-        </div>
-    `;
-        }
-
-        // Em seguida, na mesma função loadDashboard(), chame as funções de fetch:
-        if (role === 'student') {
-            await loadMentorContact();
-            await loadTasks();
-            await loadExams();
-        }
-
-        if (role === 'teacher') {
-            html += `
-                    <div class="card">
-                        <h3>Nova Aula</h3>
-                        <input type="text" id="classTitle" placeholder="Título">
-                        <input type="text" id="classDesc" placeholder="Descrição">
-                        <input type="datetime-local" id="classDate">
-                        <input type="url" id="classLink" placeholder="Link da Aula">
-                        <button onclick="createClass()">Criar Aula</button>
-                    </div>`;
-        }
-
+        // 2. SEÇÃO DE MENTORIA (Específico para Mentor e Aluno)
+        let mentorHtml = '';
         if (role === 'mentor') {
-            html += `
-                    <div class="card">
-                        <h3>Nova Reunião</h3>
-                        <input type="number" id="meetStudentId" placeholder="ID do Aluno">
-                        <input type="text" id="meetDesc" placeholder="Descrição">
-                        <input type="datetime-local" id="meetDate">
-                        <input type="url" id="meetLink" placeholder="Link da Reunião">
-                        <button onclick="createMeeting()">Agendar Reunião</button>
-                    </div>`;
-        }
-
-        html += `<h3>Aulas</h3><div id="classesList">Carregando...</div>`;
-
-        if (role !== 'teacher') {
-            html += `<h3>Reuniões de Mentoria</h3><div id="meetingsList">Carregando...</div>`;
-        }
-
-        html += `
-                <div class="card" style="margin-top: 20px;">
-                    <h3>Upload de Material</h3>
-                    <input type="file" id="fileUpload">
-                    <button onclick="uploadFile()">Enviar Arquivo</button>
+            mentorHtml = `
+                <div class="card">
+                    <h3>🎓 Alunos sob minha Mentoria</h3>
+                    <div id="myStudentsList">Buscando alunos...</div>
                 </div>
-                <h3>Arquivos do Sistema</h3>
-                <div id="filesList">Carregando...</div>`;
+                <div class="card">
+                    <h3>📅 Agendar Reunião Individual</h3>
+                    <input type="number" id="meetStudentId" placeholder="ID do Aluno">
+                    <input type="text" id="meetDesc" placeholder="Objetivo da Reunião">
+                    <input type="datetime-local" id="meetDate">
+                    <input type="url" id="meetLink" placeholder="Link do Zoom/Meet">
+                    <button class="btn btn-alt" onclick="createMeeting()">Confirmar Agendamento</button>
+                </div>`;
+        } else if (role === 'student') {
+            mentorHtml = `
+                <div class="card">
+                    <h3>🤝 Minhas Mentorias</h3>
+                    <div id="meetingList">Carregando reuniões...</div>
+                </div>`;
+        }
 
-        document.getElementById('content').innerHTML = html;
+        // 3. SEÇÃO DE ARQUIVOS
+        let filesHtml = `
+            <div class="card">
+                <h3>📂 Materiais de Apoio</h3>
+                <input type="file" id="fileInput">
+                <button class="btn" onclick="uploadFile()">Enviar Documento</button>
+                <div id="fileList" style="margin-top:15px;"></div>
+            </div>`;
 
-        await loadClasses();
-        if (role !== 'teacher') await loadMeetings();
-        await loadFiles();
+        sections.innerHTML = classesHtml + mentorHtml + filesHtml;
+
+        // Carregar dados das APIs
+        loadClasses();
+        if (role === 'mentor') loadMyStudents();
+        if (role === 'student' || role === 'mentor') loadMeetings();
+        loadFiles();
     }
 
     async function loadClasses() {
         const res = await fetchAPI('/api/classes');
-        if (res.ok) {
-            const data = await res.json();
-            let html = "<ul>";
-            data.forEach(c => {
-                html += `<li><strong>${c.title}</strong> (${c.datetime}) - <a href="${c.link}" target="_blank">Acessar</a>`;
-                if (role === 'student') {
-                    html += ` | <button onclick="enrollClass(${c.id})" style="width: auto; padding: 5px;">Inscrever-se</button>`;
-                }
-                html += `</li>`;
-            });
-            document.getElementById('classesList').innerHTML = html + "</ul>";
-        }
+        const data = await res.json();
+        const list = document.getElementById('classList');
+        list.innerHTML = data.map(c => `
+            <div class="item-card">
+                <strong>${c.title}</strong><br>
+                <small>Professor: ${c.teacher_name}</small><br>
+                <small>📅 ${new Date(c.datetime).toLocaleString()}</small><br>
+                <a href="${c.link}" target="_blank" style="color:var(--primary); font-size: 0.9em;">Link da Aula 🔗</a>
+            </div>
+        `).join('') || 'Nenhuma aula agendada.';
+    }
+
+    async function loadMyStudents() {
+        const res = await fetchAPI('/api/my-students');
+        const data = await res.json();
+        const list = document.getElementById('myStudentsList');
+        list.innerHTML = data.map(s => `
+            <div class="item-card" style="border-left: 4px solid var(--success);">
+                <strong>${s.name}</strong><br>
+                <small>ID: ${s.id} | ${s.email}</small>
+                <button class="btn" style="padding:5px; font-size:11px;" onclick="document.getElementById('meetStudentId').value=${s.id}">Selecionar para Reunião</button>
+            </div>
+        `).join('') || 'Você ainda não possui alunos vinculados.';
     }
 
     async function loadMeetings() {
         const res = await fetchAPI('/api/meetings');
-        if (res.ok) {
-            const data = await res.json();
-            let html = "<ul>";
-            data.forEach(m => {
-                html += `<li>${m.datetime} - ${m.description} - <a href="${m.link}" target="_blank">Acessar Reunião</a></li>`;
-            });
-            document.getElementById('meetingsList').innerHTML = html + "</ul>";
-        }
+        const data = await res.json();
+        const list = document.getElementById('meetingList');
+        if(!list) return;
+        list.innerHTML = data.map(m => `
+            <div class="item-card">
+                <strong>Reunião: ${m.description}</strong><br>
+                <small>Data: ${new Date(m.datetime).toLocaleString()}</small><br>
+                <a href="${m.link}" target="_blank">Entrar na Sala 🎥</a>
+            </div>
+        `).join('') || 'Sem reuniões marcadas.';
     }
 
     async function loadFiles() {
         const res = await fetchAPI('/api/files');
-        if (res.ok) {
-            const data = await res.json();
-            let html = "<ul>";
-            data.forEach(f => html += `<li>${f.filename}</li>`);
-            document.getElementById('filesList').innerHTML = html + "</ul>";
-        }
+        const data = await res.json();
+        const list = document.getElementById('fileList');
+        list.innerHTML = data.map(f => `
+            <div style="margin-bottom:5px;">📄 <a href="/api/files/download/${f.id}">${f.filename}</a></div>
+        `).join('');
     }
 
+    // Funções de criação (Simplificadas)
     async function createClass() {
-        const payload = {
+        const body = {
             title: document.getElementById('classTitle').value,
-            description: document.getElementById('classDesc').value,
             datetime: document.getElementById('classDate').value,
             link: document.getElementById('classLink').value
         };
-        const res = await fetchAPI('/api/classes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        res.ok ? loadClasses() : alert((await res.json()).error);
+        await fetchAPI('/api/classes', 'POST', body);
+        loadClasses();
     }
 
     async function createMeeting() {
-        const payload = {
+        const body = {
             student_id: document.getElementById('meetStudentId').value,
             description: document.getElementById('meetDesc').value,
             datetime: document.getElementById('meetDate').value,
             link: document.getElementById('meetLink').value
         };
-        const res = await fetchAPI('/api/meetings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        res.ok ? loadMeetings() : alert((await res.json()).error);
-    }
-
-    async function enrollClass(classId) {
-        const res = await fetchAPI(`/api/classes/${classId}/enroll`, { method: 'POST' });
-        alert(res.ok ? 'Inscrição realizada com sucesso!' : (await res.json()).error);
-    }
-
-    async function uploadFile() {
-        const fileInput = document.getElementById('fileUpload');
-        if (fileInput.files.length === 0) return alert('Selecione um arquivo.');
-
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
-
-        const res = await fetchAPI('/api/upload', { method: 'POST', body: formData });
-        res.ok ? loadFiles() : alert((await res.json()).error);
+        await fetchAPI('/api/meetings', 'POST', body);
+        alert('Reunião agendada!');
+        if(role === 'mentor') loadMeetings();
     }
 
     function logout() {
         localStorage.clear();
-        window.location.href = '/';
-    }
-    async function loadMentorContact() {
-        const res = await fetchAPI('/api/my-mentor');
-        if (res.ok) {
-            const data = await res.json();
-            const waLink = data.whatsapp ? `https://wa.me/${data.whatsapp}` : '#';
-            document.getElementById('mentorContact').innerHTML = `
-            <p>Seu Mentor: <strong>${data.name}</strong></p>
-            <a href="${waLink}" target="_blank" style="display: inline-block; background: #25D366; color: white; padding: 10px; text-decoration: none; border-radius: 4px;">Falar no WhatsApp</a>
-        `;
-        } else {
-            document.getElementById('mentorContact').innerHTML = `<p>Você ainda não tem um mentor atribuído.</p>`;
-        }
-    }
-
-    async function loadTasks() {
-        const res = await fetchAPI('/api/tasks');
-        if (res.ok) {
-            const data = await res.json();
-            let html = "<ul>";
-            data.forEach(t => {
-                const checked = t.is_completed ? "checked" : "";
-                const style = t.is_completed ? "text-decoration: line-through; color: #888;" : "";
-                html += `<li style="${style}">
-                <input type="checkbox" ${checked} onchange="toggleTask(${t.id})"> 
-                Semana ${t.week_number}: ${t.description}
-            </li>`;
-            });
-            document.getElementById('tasksList').innerHTML = html + "</ul>";
-        }
-    }
-
-    async function toggleTask(taskId) {
-        await fetchAPI(`/api/tasks/${taskId}/toggle`, { method: 'POST' });
-        loadTasks(); // recarrega a lista para atualizar o visual
-    }
-
-    async function loadExams() {
-        const res = await fetchAPI('/api/exam-results');
-        if (res.ok) {
-            const data = await res.json();
-            let html = "<ul>";
-            data.forEach(e => {
-                html += `<li>${e.date} - <strong>${e.exam_title}</strong>: Nota ${e.score}</li>`;
-            });
-            document.getElementById('examsList').innerHTML = html + "</ul>";
-        }
-    }
-
-    async function submitExamResult() {
-        const payload = {
-            exam_title: document.getElementById('examTitle').value,
-            score: parseFloat(document.getElementById('examScore').value),
-            date: document.getElementById('examDate').value
-        };
-        const res = await fetchAPI('/api/exam-results', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-            loadExams();
-        } else {
-            alert((await res.json()).error);
-        }
+        window.location.href = '/login';
     }
 
     loadDashboard();
