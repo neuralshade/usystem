@@ -5,10 +5,9 @@ from app.models.models import User
 app = create_app()
 
 with app.app_context():
-    # Cria as tabelas do banco
+    # Cria as tabelas
     db.create_all()
 
-    # Criação de dados iniciais (Seed)
     if not User.query.first():
         hashed_pw = bcrypt.generate_password_hash('senha123').decode('utf-8')
         
@@ -18,6 +17,6 @@ with app.app_context():
         
         db.session.add_all([teacher, mentor, student])
         db.session.commit()
-        print("Banco inicializado e usuários criados com sucesso!")
+        print("Banco inicializado e usuários teste criados com sucesso!")
     else:
         print("Banco já contém dados.")

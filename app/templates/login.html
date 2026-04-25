@@ -6,6 +6,7 @@
         <input type="password" id="password" placeholder="Senha" required>
         <button type="submit">Entrar</button>
     </form>
+    <p>Não possui conta? <a href="/register">Cadastre-se</a></p>
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -21,6 +22,10 @@
             const data = await response.json();
             if (response.ok) {
                 localStorage.setItem('token', data.access_token);
+                // Extrai as informações da sessão a partir do token
+                const payload = JSON.parse(atob(data.access_token.split('.')[1]));
+                localStorage.setItem('role', payload.role);
+                localStorage.setItem('name', payload.name);
                 window.location.href = '/dashboard';
             } else {
                 alert(data.error);

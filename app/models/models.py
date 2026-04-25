@@ -6,7 +6,7 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), nullable=False) # 'student', 'mentor', 'teacher'
+    role = db.Column(db.String(20), nullable=False)
 
 class MentorStudent(db.Model):
     __tablename__ = 'mentor_students'
@@ -19,7 +19,7 @@ class Meeting(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     mentor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    datetime = db.Column(db.DateTime, nullable=False)
+    datetime = db.Column(db.String(50), nullable=False)
     description = db.Column(db.Text)
     link = db.Column(db.String(255))
 
@@ -29,7 +29,7 @@ class Class(db.Model):
     teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text)
-    datetime = db.Column(db.DateTime, nullable=False)
+    datetime = db.Column(db.String(50), nullable=False)
     link = db.Column(db.String(255))
 
 class ClassEnrollment(db.Model):

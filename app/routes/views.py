@@ -6,6 +6,10 @@ views_bp = Blueprint('views', __name__)
 def index():
     return render_template('login.html')
 
+@views_bp.route('/register')
+def register():
+    return render_template('register.html')
+
 @views_bp.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')

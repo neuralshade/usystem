@@ -3,14 +3,13 @@ from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename
 from app.extensions import db, bcrypt
 from app.models.models import User, MentorStudent, Meeting, Class, ClassEnrollment, File
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 
 api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    # Verifica se o email já existe
     if User.query.filter_by(email=data.get('email')).first():
         return jsonify({"error": "Email já cadastrado"}), 400
 
@@ -30,9 +29,21 @@ def login():
     data = request.get_json()
     user = User.query.filter_by(email=data.get('email')).first()
     if user and bcrypt.check_password_hash(user.password_hash, data.get('password')):
-        token = create_access_token(identity={"id": user.id, "role": user.role})
+        token = create_access_token(identity=str(user.id), additional_claims={"role": user.role, "name": user.name})
         return jsonify({"access_token": token}), 200
     return jsonify({"error": "Credenciais inválidas"}), 401
+
+@api_bp.route('/users', methods=['GET'])
+@jwt_required()
+def get_users():
+    users = User.query.all()
+    return jsonify([{"id": u.id, "name": u.name, "email": u.email, "role": u.role} for u in users]), 200
+
+@api_bp.route('/users/<int:id>', methods=['GET'])
+@jwt_required()
+def get_user(id):
+    user = User.query.get_or_404(id)
+    return jsonify({"id": user.id, "name": user.name, "email": user.email, "role": user.role}), 200
 
 @api_bp.route('/assign-mentor', methods=['POST'])
 @jwt_required()
@@ -41,7 +52,6 @@ def assign_mentor():
     student_id = data.get('student_id')
     mentor_id = data.get('mentor_id')
     
-    # Previne que um aluno tenha mais de um mentor
     if MentorStudent.query.filter_by(student_id=student_id).first():
         return jsonify({"error": "Aluno já possui um mentor"}), 400
         
@@ -50,21 +60,61 @@ def assign_mentor():
     db.session.commit()
     return jsonify({"message": "Mentor atribuído com sucesso"}), 201
 
+@api_bp.route('/mentor/<int:id>/students', methods=['GET'])
+@jwt_required()
+def get_mentor_students(id):
+    students = db.session.query(User).join(MentorStudent, MentorStudent.student_id == User.id).filter(MentorStudent.mentor_id == id).all()
+    return jsonify([{"id": s.id, "name": s.name, "email": s.email} for s in students]), 200
+
+@api_bp.route('/meetings', methods=['POST', 'GET'])
+@jwt_required()
+def handle_meetings():
+    claims = get_jwt()
+    current_user_id = int(get_jwt_identity())
+    role = claims.get('role')
+
+    if request.method == 'POST':
+        if role != 'mentor':
+            return jsonify({"error": "Apenas mentores podem criar reuniões"}), 403
+            
+        data = request.get_json()
+        new_meeting = Meeting(
+            mentor_id=current_user_id,
+            student_id=data.get('student_id'),
+            datetime=data.get('datetime'),
+            description=data.get('description'),
+            link=data.get('link')
+        )
+        db.session.add(new_meeting)
+        db.session.commit()
+        return jsonify({"message": "Reunião criada com sucesso"}), 201
+
+    if request.method == 'GET':
+        if role == 'mentor':
+            meetings = Meeting.query.filter_by(mentor_id=current_user_id).all()
+        elif role == 'student':
+            meetings = Meeting.query.filter_by(student_id=current_user_id).all()
+        else:
+            meetings = []
+        return jsonify([{"id": m.id, "datetime": m.datetime, "description": m.description, "link": m.link} for m in meetings]), 200
+
 @api_bp.route('/classes', methods=['POST', 'GET'])
 @jwt_required()
 def handle_classes():
-    current_user = get_jwt_identity()
+    claims = get_jwt()
+    current_user_id = int(get_jwt_identity())
+    role = claims.get('role')
     
     if request.method == 'POST':
-        if current_user['role'] != 'teacher':
+        if role != 'teacher':
             return jsonify({"error": "Apenas professores podem criar aulas"}), 403
             
         data = request.get_json()
         new_class = Class(
-            teacher_id=current_user['id'],
+            teacher_id=current_user_id,
             title=data.get('title'),
             description=data.get('description'),
-            datetime=data.get('datetime'), # Ex: '2026-04-25T10:00:00'
+            datetime=data.get('datetime'),
             link=data.get('link')
         )
         db.session.add(new_class)
@@ -73,12 +123,30 @@ def handle_classes():
         
     if request.method == 'GET':
         classes = Class.query.all()
-        return jsonify([{"id": c.id, "title": c.title, "link": c.link} for c in classes]), 200
+        return jsonify([{"id": c.id, "title": c.title, "datetime": c.datetime, "link": c.link} for c in classes]), 200
+
+@api_bp.route('/classes/<int:id>/enroll', methods=['POST'])
+@jwt_required()
+def enroll_class(id):
+    claims = get_jwt()
+    current_user_id = int(get_jwt_identity())
+    role = claims.get('role')
+
+    if role != 'student':
+        return jsonify({"error": "Apenas alunos podem se inscrever"}), 403
+
+    if ClassEnrollment.query.filter_by(class_id=id, student_id=current_user_id).first():
+        return jsonify({"error": "Você já está inscrito nesta aula"}), 400
+
+    enrollment = ClassEnrollment(class_id=id, student_id=current_user_id)
+    db.session.add(enrollment)
+    db.session.commit()
+    return jsonify({"message": "Inscrição realizada com sucesso"}), 201
 
 @api_bp.route('/upload', methods=['POST'])
 @jwt_required()
 def upload_file():
-    current_user = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     if 'file' not in request.files:
         return jsonify({"error": "Nenhum arquivo enviado"}), 400
         
@@ -90,13 +158,23 @@ def upload_file():
     filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
     file.save(filepath)
     
+    class_id = request.form.get('class_id')
+    if not class_id or class_id == 'null':
+        class_id = None
+
     new_file = File(
         filename=filename,
         path=filepath,
-        owner_id=current_user['id'],
-        class_id=request.form.get('class_id')
+        owner_id=current_user_id,
+        class_id=class_id
     )
     db.session.add(new_file)
     db.session.commit()
     
-    return jsonify({"message": "Arquivo enviado com sucesso", "path": filepath}), 201
+    return jsonify({"message": "Arquivo enviado com sucesso", "filename": filename}), 201
+
+@api_bp.route('/files', methods=['GET'])
+@jwt_required()
+def get_files():
+    files = File.query.all()
+    return jsonify([{"id": f.id, "filename": f.filename} for f in files]), 200

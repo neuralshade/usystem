@@ -1,38 +1,169 @@
 {% extends "base.html" %}
 {% block content %}
+    <div class="nav">
+        <div>Bem-vindo, <strong id="userName"></strong> (<span id="userRole"></span>)</div>
+        <a href="#" onclick="logout()">Sair</a>
+    </div>
+
     <h2>Painel Principal</h2>
-    <div id="content">Carregando...</div>
-    <button onclick="logout()">Sair</button>
+    <div id="content">Carregando interface...</div>
 
     <script>
-        // Função para carregar as aulas usando o JWT
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('role');
+        const name = localStorage.getItem('name');
+
+        if (!token) window.location.href = '/';
+
+        document.getElementById('userName').textContent = name;
+        const roleNames = { 'student': 'Aluno', 'mentor': 'Mentor', 'teacher': 'Professor' };
+        document.getElementById('userRole').textContent = roleNames[role];
+
+        async function fetchAPI(url, options = {}) {
+            options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+            const response = await fetch(url, options);
+            if (response.status === 401 || response.status === 422) logout();
+            return response;
+        }
+
+        async function loadDashboard() {
+            let html = "";
+
+            if (role === 'teacher') {
+                html += `
+                    <div class="card">
+                        <h3>Nova Aula</h3>
+                        <input type="text" id="classTitle" placeholder="Título">
+                        <input type="text" id="classDesc" placeholder="Descrição">
+                        <input type="datetime-local" id="classDate">
+                        <input type="url" id="classLink" placeholder="Link da Aula">
+                        <button onclick="createClass()">Criar Aula</button>
+                    </div>`;
+            }
+
+            if (role === 'mentor') {
+                html += `
+                    <div class="card">
+                        <h3>Nova Reunião</h3>
+                        <input type="number" id="meetStudentId" placeholder="ID do Aluno">
+                        <input type="text" id="meetDesc" placeholder="Descrição">
+                        <input type="datetime-local" id="meetDate">
+                        <input type="url" id="meetLink" placeholder="Link da Reunião">
+                        <button onclick="createMeeting()">Agendar Reunião</button>
+                    </div>`;
+            }
+
+            html += `<h3>Aulas</h3><div id="classesList">Carregando...</div>`;
+            
+            if (role !== 'teacher') {
+                html += `<h3>Reuniões de Mentoria</h3><div id="meetingsList">Carregando...</div>`;
+            }
+
+            html += `
+                <div class="card" style="margin-top: 20px;">
+                    <h3>Upload de Material</h3>
+                    <input type="file" id="fileUpload">
+                    <button onclick="uploadFile()">Enviar Arquivo</button>
+                </div>
+                <h3>Arquivos do Sistema</h3>
+                <div id="filesList">Carregando...</div>`;
+
+            document.getElementById('content').innerHTML = html;
+
+            await loadClasses();
+            if (role !== 'teacher') await loadMeetings();
+            await loadFiles();
+        }
+
         async function loadClasses() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = '/';
-                return;
+            const res = await fetchAPI('/api/classes');
+            if (res.ok) {
+                const data = await res.json();
+                let html = "<ul>";
+                data.forEach(c => {
+                    html += `<li><strong>${c.title}</strong> (${c.datetime}) - <a href="${c.link}" target="_blank">Acessar</a>`;
+                    if (role === 'student') {
+                        html += ` | <button onclick="enrollClass(${c.id})" style="width: auto; padding: 5px;">Inscrever-se</button>`;
+                    }
+                    html += `</li>`;
+                });
+                document.getElementById('classesList').innerHTML = html + "</ul>";
             }
+        }
 
-            const response = await fetch('/api/classes', {
-                headers: { 'Authorization': `Bearer ${token}` }
+        async function loadMeetings() {
+            const res = await fetchAPI('/api/meetings');
+            if (res.ok) {
+                const data = await res.json();
+                let html = "<ul>";
+                data.forEach(m => {
+                    html += `<li>${m.datetime} - ${m.description} - <a href="${m.link}" target="_blank">Acessar Reunião</a></li>`;
+                });
+                document.getElementById('meetingsList').innerHTML = html + "</ul>";
+            }
+        }
+
+        async function loadFiles() {
+            const res = await fetchAPI('/api/files');
+            if (res.ok) {
+                const data = await res.json();
+                let html = "<ul>";
+                data.forEach(f => html += `<li>${f.filename}</li>`);
+                document.getElementById('filesList').innerHTML = html + "</ul>";
+            }
+        }
+
+        async function createClass() {
+            const payload = {
+                title: document.getElementById('classTitle').value,
+                description: document.getElementById('classDesc').value,
+                datetime: document.getElementById('classDate').value,
+                link: document.getElementById('classLink').value
+            };
+            const res = await fetchAPI('/api/classes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
+            res.ok ? loadClasses() : alert((await res.json()).error);
+        }
 
-            if (response.ok) {
-                const classes = await response.json();
-                let html = "<h3>Aulas Disponíveis</h3><ul>";
-                classes.forEach(c => html += `<li>${c.title} - <a href="${c.link}">Acessar</a></li>`);
-                html += "</ul>";
-                document.getElementById('content').innerHTML = html;
-            } else {
-                document.getElementById('content').innerHTML = "Erro ao carregar os dados ou sessão expirada.";
-            }
+        async function createMeeting() {
+            const payload = {
+                student_id: document.getElementById('meetStudentId').value,
+                description: document.getElementById('meetDesc').value,
+                datetime: document.getElementById('meetDate').value,
+                link: document.getElementById('meetLink').value
+            };
+            const res = await fetchAPI('/api/meetings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            res.ok ? loadMeetings() : alert((await res.json()).error);
+        }
+
+        async function enrollClass(classId) {
+            const res = await fetchAPI(`/api/classes/${classId}/enroll`, { method: 'POST' });
+            alert(res.ok ? 'Inscrição realizada com sucesso!' : (await res.json()).error);
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileUpload');
+            if (fileInput.files.length === 0) return alert('Selecione um arquivo.');
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const res = await fetchAPI('/api/upload', { method: 'POST', body: formData });
+            res.ok ? loadFiles() : alert((await res.json()).error);
         }
 
         function logout() {
-            localStorage.removeItem('token');
+            localStorage.clear();
             window.location.href = '/';
         }
 
-        loadClasses();
+        loadDashboard();
     </script>
 {% endblock %}

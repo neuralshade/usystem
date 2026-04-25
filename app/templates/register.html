@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Cadastro de Usuário</h2>
+    <form id="registerForm">
+        <input type="text" id="name" placeholder="Nome Completo" required>
+        <input type="email" id="email" placeholder="E-mail" required>
+        <input type="password" id="password" placeholder="Senha" required>
+        <select id="role" required>
+            <option value="student">Aluno</option>
+            <option value="mentor">Mentor</option>
+            <option value="teacher">Professor</option>
+        </select>
+        <button type="submit">Cadastrar</button>
+    </form>
+    <p>Já possui conta? <a href="/">Entrar aqui</a></p>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password, role })
+            });
+            
+            const data = await response.json();
+            if (response.ok) {
+                alert('Cadastro efetuado! Por favor, faça login.');
+                window.location.href = '/';
+            } else {
+                alert(data.error);
+            }
+        });
+    </script>
+{% endblock %}
