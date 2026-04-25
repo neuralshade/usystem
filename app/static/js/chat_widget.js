@@ -347,7 +347,7 @@ function escapeHtml(value) {
 }
 
 function getRoleLabelForChat(role) {
-    if (role === 'teacher') return 'Professor';
+    if (role === 'mentor' || role === 'teacher') return 'Mentor';
     if (role === 'student') return 'Aluno';
     return 'Usuário';
 }

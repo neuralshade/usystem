@@ -153,13 +153,17 @@ async function loadManagedStudents() {
     const students = managedStudentsCache;
     const html = students.map((student) => `
         <a class="student-link-row" href="/students/${student.id}">
-            <div>
-                <strong>${student.name}</strong>
-                <br>
-                <small>${student.email}</small>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#555;">
+                    ${(student.name || '?').charAt(0).toUpperCase()}
+                </div>
+                <div class="student-info" style="line-height:1.2;">
+                    <strong>${student.name}</strong><br>
+                    <small>${student.email}</small>
+                </div>
             </div>
-            <div>
-                ${unreadMap[student.id] ? `<span class="chat-badge chat-badge-inline">${unreadMap[student.id]} nova${unreadMap[student.id] > 1 ? 's' : ''}</span>` : '<span class="tag">Sem novas mensagens</span>'}
+            <div style="text-align:right;min-width:120px;">
+                ${unreadMap[student.id] ? `<span class="chat-badge chat-badge-inline">${unreadMap[student.id]} nova${unreadMap[student.id] > 1 ? 's' : ''}</span>` : '<span class="tag" style="font-size:12px;">Sem novas mensagens</span>'}
             </div>
         </a>
     `).join('');

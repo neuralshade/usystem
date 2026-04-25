@@ -13,7 +13,7 @@ class Meeting(db.Model):
 class Class(db.Model):
     __tablename__ = 'classes'
     id = db.Column(db.Integer, primary_key=True)
-    teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    mentor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text)
     datetime = db.Column(db.String(50), nullable=False)

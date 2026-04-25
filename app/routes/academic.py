@@ -29,8 +29,8 @@ def handle_meetings():
     role = claims.get('role')
 
     if request.method == 'POST':
-        if role not in ('mentor', 'teacher'):
-            return jsonify({"error": "Apenas mentores ou professores podem criar reuniões"}), 403
+        if role != 'mentor':
+            return jsonify({"error": "Apenas mentores podem criar reuniões"}), 403
 
         data = request.get_json(silent=True) or {}
         if not data.get('student_id') or not data.get('datetime') or not data.get('title'):
@@ -51,7 +51,7 @@ def handle_meetings():
         db.session.commit()
         return jsonify({"message": "Reunião criada com sucesso", "meeting": serialize_meeting(new_meeting)}), 201
 
-    if role in ['mentor', 'teacher']:
+    if role == 'mentor':
         meetings_query = Meeting.query.filter_by(mentor_id=current_user_id)
         student_id = request.args.get('student_id', type=int)
         if student_id:
@@ -70,8 +70,8 @@ def delete_meeting(id):
     current_user_id = int(get_jwt_identity())
     role = get_jwt().get('role')
 
-    if role not in ('mentor', 'teacher'):
-        return jsonify({"error": "Apenas mentores ou professores podem excluir reuniões"}), 403
+    if role != 'mentor':
+        return jsonify({"error": "Apenas mentores podem excluir reuniões"}), 403
 
     meeting = Meeting.query.get_or_404(id)
     if meeting.mentor_id != current_user_id:
@@ -90,8 +90,8 @@ def handle_classes():
     role = claims.get('role')
 
     if request.method == 'POST':
-        if role != 'teacher':
-            return jsonify({"error": "Apenas professores podem criar aulas"}), 403
+        if role != 'mentor':
+            return jsonify({"error": "Apenas mentores podem criar aulas"}), 403
 
         data = request.get_json(silent=True) or {}
         if not data.get('title') or not data.get('datetime'):
@@ -101,7 +101,7 @@ def handle_classes():
             return jsonify({"error": "event_type inválido"}), 400
 
         new_class = Class(
-            teacher_id=current_user_id,
+            mentor_id=current_user_id,
             title=data.get('title'),
             description=data.get('description'),
             datetime=data.get('datetime'),
@@ -119,12 +119,12 @@ def handle_classes():
                 "datetime": new_class.datetime,
                 "link": new_class.link,
                 "event_type": new_class.event_type,
-                "teacher_id": new_class.teacher_id,
+                "mentor_id": new_class.mentor_id,
             }
         }), 201
 
-    classes = db.session.query(Class, User.name.label('teacher_name')).join(User, Class.teacher_id == User.id).all()
-    return jsonify([{"id": c.Class.id, "title": c.Class.title, "description": c.Class.description, "datetime": c.Class.datetime, "link": c.Class.link, "teacher_name": c.teacher_name, "event_type": c.Class.event_type, "teacher_id": c.Class.teacher_id} for c in classes]), 200
+    classes = db.session.query(Class, User.name.label('mentor_name')).join(User, Class.mentor_id == User.id).all()
+    return jsonify([{"id": c.Class.id, "title": c.Class.title, "description": c.Class.description, "datetime": c.Class.datetime, "link": c.Class.link, "mentor_name": c.mentor_name, "event_type": c.Class.event_type, "mentor_id": c.Class.mentor_id} for c in classes]), 200
 
 
 @academic_bp.route('/classes/<int:id>', methods=['DELETE'])
@@ -133,11 +133,11 @@ def delete_class(id):
     current_user_id = int(get_jwt_identity())
     role = get_jwt().get('role')
 
-    if role != 'teacher':
-        return jsonify({"error": "Apenas professores podem excluir aulas ou plantões"}), 403
+    if role != 'mentor':
+        return jsonify({"error": "Apenas mentores podem excluir aulas ou plantões"}), 403
 
     class_event = Class.query.get_or_404(id)
-    if class_event.teacher_id != current_user_id:
+    if class_event.mentor_id != current_user_id:
         return jsonify({"error": "Sem permissão para excluir este evento"}), 403
 
     ClassEnrollment.query.filter_by(class_id=id).delete(synchronize_session=False)

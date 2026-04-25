@@ -92,7 +92,7 @@ def unassign_mentor(student_id):
     SharedLink.query.filter_by(student_id=student_id, mentor_id=current_user_id).delete(synchronize_session=False)
     Meeting.query.filter_by(student_id=student_id, mentor_id=current_user_id).delete(synchronize_session=False)
     File.query.filter_by(student_id=student_id, owner_id=current_user_id).delete(synchronize_session=False)
-    chat_threads = ChatThread.query.filter_by(student_id=student_id, teacher_id=current_user_id).all()
+    chat_threads = ChatThread.query.filter_by(student_id=student_id, mentor_id=current_user_id).all()
     thread_ids = [thread.id for thread in chat_threads]
     if thread_ids:
         ChatMessage.query.filter(ChatMessage.thread_id.in_(thread_ids)).delete(synchronize_session=False)

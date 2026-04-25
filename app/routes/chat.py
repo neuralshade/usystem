@@ -35,7 +35,7 @@ def get_thread_unread_count(thread_id, current_user_id):
 
 
 def resolve_chat_access(current_user_id, current_role, requested_student_id=None):
-    if current_role == 'teacher':
+    if current_role == 'mentor':
         student_id = requested_student_id
         try:
             student_id = int(student_id)
@@ -47,37 +47,37 @@ def resolve_chat_access(current_user_id, current_role, requested_student_id=None
             return None, None, "Sem permissão para acessar o chat deste aluno"
 
         student = User.query.get(student_id)
-        teacher = User.query.get(current_user_id)
+        mentor = User.query.get(current_user_id)
         if not student or student.role != 'student':
             return None, None, "Aluno inválido"
-        if not teacher or teacher.role != 'teacher':
-            return None, None, "Apenas professores podem usar este chat"
+        if not mentor or mentor.role != 'mentor':
+            return None, None, "Apenas mentores podem usar este chat"
 
-        return teacher, student, None
+        return mentor, student, None
 
     if current_role == 'student':
         assignment = get_student_assignment(current_user_id)
         if not assignment:
-            return None, None, "Nenhum professor responsável vinculado"
+            return None, None, "Nenhum mentor responsável vinculado"
 
-        teacher = User.query.get(assignment.mentor_id)
+        mentor = User.query.get(assignment.mentor_id)
         student = User.query.get(current_user_id)
-        if not teacher or teacher.role != 'teacher':
-            return None, None, "Chat disponível apenas com professor responsável"
+        if not mentor or mentor.role != 'mentor':
+            return None, None, "Chat disponível apenas com mentor responsável"
         if not student or student.role != 'student':
             return None, None, "Aluno inválido"
 
-        return teacher, student, None
+        return mentor, student, None
 
-    return None, None, "Somente professor e aluno podem usar o chat"
+    return None, None, "Somente mentor e aluno podem usar o chat"
 
 
-def get_or_create_thread(teacher_id, student_id):
-    thread = ChatThread.query.filter_by(teacher_id=teacher_id, student_id=student_id).first()
+def get_or_create_thread(mentor_id, student_id):
+    thread = ChatThread.query.filter_by(mentor_id=mentor_id, student_id=student_id).first()
     if thread:
         return thread
 
-    thread = ChatThread(teacher_id=teacher_id, student_id=student_id)
+    thread = ChatThread(mentor_id=mentor_id, student_id=student_id)
     db.session.add(thread)
     db.session.commit()
     return thread
@@ -88,16 +88,16 @@ def get_or_create_thread(teacher_id, student_id):
 def get_chat_thread():
     current_user_id = int(get_jwt_identity())
     current_role = get_jwt().get('role')
-    teacher, student, error = resolve_chat_access(current_user_id, current_role, request.args.get('student_id'))
+    mentor, student, error = resolve_chat_access(current_user_id, current_role, request.args.get('student_id'))
     if error:
-        return jsonify({"error": error}), 403 if current_role != 'student' or error != "Nenhum professor responsável vinculado" else 404
+        return jsonify({"error": error}), 403 if current_role != 'student' or error != "Nenhum mentor responsável vinculado" else 404
 
-    thread = get_or_create_thread(teacher.id, student.id)
-    counterpart = student if current_role == 'teacher' else teacher
+    thread = get_or_create_thread(mentor.id, student.id)
+    counterpart = student if current_role == 'mentor' else mentor
     return jsonify({
         "thread": {
             "id": thread.id,
-            "teacher_id": teacher.id,
+            "mentor_id": mentor.id,
             "student_id": student.id,
             "created_at": thread.created_at.isoformat(),
         },
@@ -120,11 +120,11 @@ def chat_messages():
         data = request.get_json(silent=True) or {}
         requested_student_id = data.get('student_id')
 
-    teacher, student, error = resolve_chat_access(current_user_id, current_role, requested_student_id)
+    mentor, student, error = resolve_chat_access(current_user_id, current_role, requested_student_id)
     if error:
-        return jsonify({"error": error}), 403 if current_role != 'student' or error != "Nenhum professor responsável vinculado" else 404
+        return jsonify({"error": error}), 403 if current_role != 'student' or error != "Nenhum mentor responsável vinculado" else 404
 
-    thread = get_or_create_thread(teacher.id, student.id)
+    thread = get_or_create_thread(mentor.id, student.id)
 
     if request.method == 'POST':
         data = request.get_json(silent=True) or {}
@@ -160,11 +160,11 @@ def mark_chat_as_read():
     current_user_id = int(get_jwt_identity())
     current_role = get_jwt().get('role')
     data = request.get_json(silent=True) or {}
-    teacher, student, error = resolve_chat_access(current_user_id, current_role, data.get('student_id'))
+    mentor, student, error = resolve_chat_access(current_user_id, current_role, data.get('student_id'))
     if error:
-        return jsonify({"error": error}), 403 if current_role != 'student' or error != "Nenhum professor responsável vinculado" else 404
+        return jsonify({"error": error}), 403 if current_role != 'student' or error != "Nenhum mentor responsável vinculado" else 404
 
-    thread = get_or_create_thread(teacher.id, student.id)
+    thread = get_or_create_thread(mentor.id, student.id)
     unread_messages = ChatMessage.query.filter(
         ChatMessage.thread_id == thread.id,
         ChatMessage.sender_id != current_user_id,
@@ -185,8 +185,8 @@ def get_chat_unread_summary():
     current_user_id = int(get_jwt_identity())
     current_role = get_jwt().get('role')
 
-    if current_role == 'teacher':
-        threads = ChatThread.query.filter_by(teacher_id=current_user_id).all()
+    if current_role == 'mentor':
+        threads = ChatThread.query.filter_by(mentor_id=current_user_id).all()
         return jsonify([
             {
                 "student_id": thread.student_id,
@@ -197,17 +197,17 @@ def get_chat_unread_summary():
         ]), 200
 
     if current_role == 'student':
-        teacher, student, error = resolve_chat_access(current_user_id, current_role)
+        mentor, student, error = resolve_chat_access(current_user_id, current_role)
         if error:
             return jsonify([]), 200
 
-        thread = ChatThread.query.filter_by(teacher_id=teacher.id, student_id=student.id).first()
+        thread = ChatThread.query.filter_by(mentor_id=mentor.id, student_id=student.id).first()
         if not thread:
             return jsonify([]), 200
 
         return jsonify([{
             "student_id": student.id,
-            "teacher_id": teacher.id,
+            "mentor_id": mentor.id,
             "unread_count": get_thread_unread_count(thread.id, current_user_id),
         }]), 200
 
