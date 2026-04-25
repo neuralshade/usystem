@@ -2,17 +2,17 @@
 
 {% block content %}
 <div class="dashboard-container">
-    <header class="dashboard-header">
+    <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h1>Painel de Controle</h1>
-            <p>Bem-vindo, <span id="userName" style="font-weight: bold; color: var(--primary);">...</span> (<span
-                    id="userRole">...</span>)</p>
+            <p>Bem-vindo, <span id="userName" style="font-weight: bold; color: #007bff;">...</span> 
+               (<span id="userRole">...</span>)</p>
         </div>
-        <button class="btn btn-alt" onclick="logout()">Sair</button>
+        <button class="btn" style="background: #dc3545;" onclick="logout()">Sair</button>
     </header>
 
-    <div id="dashboardContent" class="dashboard-grid">
-    </div>
+    <div id="dashboardContent" class="grid-cards">
+        </div>
 </div>
 
 <script>
@@ -20,17 +20,18 @@
     const role = localStorage.getItem('role');
     const name = localStorage.getItem('name');
 
-    // Correção do erro no Login: Redirecionar para a raiz '/' se não houver token
-    if (!token) {
-        window.location.href = '/';
-    }
+    // Validação de Sessão
+    if (!token) window.location.href = '/';
 
+    // Simplificação: Tratar mentor e teacher como o mesmo perfil
+    const isEducator = (role === 'mentor' || role === 'teacher');
+    
     document.getElementById('userName').innerText = name;
-    document.getElementById('userRole').innerText = role === 'mentor' ? 'Mentor/Professor' : (role === 'teacher' ? 'Professor/Mentor' : 'Aluno');
+    document.getElementById('userRole').innerText = isEducator ? 'Mentor/Professor' : 'Aluno';
 
     function logout() {
         localStorage.clear();
-        window.location.href = '/'; // Correção do redirecionamento
+        window.location.href = '/';
     }
 
     async function fetchAPI(url, method = 'GET', body = null) {
@@ -45,99 +46,113 @@
         return await fetch(url, options);
     }
 
-    // Unificação de Mentor e Professor na Interface
+    // Carregamento dinâmico da Interface
     function loadDashboard() {
         const container = document.getElementById('dashboardContent');
+        
         let html = '';
 
-        // Seção de Aulas (Comum a Professor/Mentor)
-        let classesHtml = `
-            <div class="card">
-                <h3>📚 Aulas Disponíveis</h3>
-                ${(role === 'teacher' || role === 'mentor') ? `
-                    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
-                        <input type="text" id="classTitle" placeholder="Título da Aula">
-                        <input type="datetime-local" id="classDate">
-                        <input type="url" id="classLink" placeholder="Link da Transmissão (Zoom/YouTube)">
-                        <button class="btn" onclick="createClass()">Agendar Nova Aula</button>
+        // BLOCO 1: AULAS E ALUNOS (Somente para Educadores)
+        if (isEducator) {
+            html += `
+                <div class="card-item">
+                    <h4>🎓 Gerenciar Alunos</h4>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="number" id="newStudentId" placeholder="ID do Aluno">
+                        <button onclick="addStudent()">Vincular</button>
                     </div>
-                    <hr>` : ''}
+                    <div id="myStudentsList" style="margin-top: 15px;">Carregando alunos...</div>
+                </div>
+
+                <div class="card-item">
+                    <h4>📅 Agendar Reunião ou Aula</h4>
+                    <input type="text" id="eventTitle" placeholder="Título / Objetivo">
+                    <input type="datetime-local" id="eventDate">
+                    <input type="url" id="eventLink" placeholder="Link da Transmissão">
+                    <input type="number" id="eventStudentId" placeholder="ID do Aluno (Apenas p/ Reunião)">
+                    
+                    <div style="display: flex; gap: 5px;">
+                        <button onclick="createMeeting()" style="background: #28a745;">Marcar Reunião</button>
+                        <button onclick="createClass()">Agendar Aula</button>
+                    </div>
+                </div>`;
+        }
+
+        // BLOCO 2: VISÃO GERAL (Comum a Todos)
+        html += `
+            <div class="card-item">
+                <h4>📚 Aulas Disponíveis</h4>
                 <div id="classList">Carregando aulas...</div>
-            </div>`;
+            </div>
 
-        // Seção de Alunos e Reuniões (Unificada)
-        let mentorHtml = '';
-        if (role === 'mentor' || role === 'teacher') {
-            mentorHtml = `
-                <div class="card">
-                    <h3>🎓 Meus Alunos</h3>
-                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <input type="number" id="newStudentId" placeholder="ID do Aluno" style="width: 100px;">
-                        <button class="btn" style="background: var(--success); flex: 1;" onclick="addStudent()">Vincular Aluno à minha Lista</button>
-                    </div>
-                    <hr>
-                    <div id="myStudentsList">Buscando alunos...</div>
-                </div>
-                <div class="card">
-                    <h3>📅 Agendar Reunião</h3>
-                    <input type="number" id="meetStudentId" placeholder="ID do Aluno">
-                    <input type="text" id="meetDesc" placeholder="Objetivo da Reunião">
-                    <input type="datetime-local" id="meetDate">
-                    <input type="url" id="meetLink" placeholder="Link (Zoom/Meet)">
-                    <button class="btn btn-alt" onclick="createMeeting()">Confirmar Agendamento</button>
-                </div>`;
-        } else {
-            mentorHtml = `
-                <div class="card">
-                    <h3>🤝 Minhas Reuniões</h3>
-                    <div id="meetingList">Carregando reuniões...</div>
-                </div>`;
-        }
+            <div class="card-item">
+                <h4>🤝 Minhas Reuniões</h4>
+                <div id="meetingList">Carregando reuniões...</div>
+            </div>
 
-        // Seção de Arquivos
-        let filesHtml = `
-            <div class="card">
-                <h3>📁 Materiais e Arquivos</h3>
-                <div style="margin-bottom: 15px;">
+            <div class="card-item">
+                <h4>📁 Materiais</h4>
+                <div style="display: flex; gap: 5px;">
                     <input type="file" id="fileInput">
-                    <button class="btn" onclick="uploadFile()">Enviar Arquivo</button>
+                    <button onclick="uploadFile()">Enviar</button>
                 </div>
-                <div id="fileList">Carregando arquivos...</div>
+                <div id="fileList" style="margin-top: 15px;">Carregando arquivos...</div>
             </div>`;
 
-        container.innerHTML = classesHtml + mentorHtml + filesHtml;
+        container.innerHTML = html;
 
-        // Carregar dados iniciais
+        // Iniciar buscas na API
         loadClasses();
+        loadMeetings();
         loadFiles();
-        if (role === 'mentor' || role === 'teacher') {
-            loadMyStudents();
-            loadMeetings();
-        } else {
-            loadMeetings();
-        }
+        if (isEducator) loadMyStudents();
     }
 
-    // --- FUNÇÕES DE AÇÃO ---
+    // --- FUNÇÕES DE INTEGRAÇÃO COM A API ---
 
     async function addStudent() {
         const studentId = document.getElementById('newStudentId').value;
-        const mentorId = localStorage.getItem('id');
-
         if (!studentId) return alert('Informe o ID do aluno.');
 
         const res = await fetchAPI('/api/assign-mentor', 'POST', {
             student_id: studentId,
-            mentor_id: mentorId
+            mentor_id: localStorage.getItem('id')
         });
 
         if (res.ok) {
-            alert('Aluno adicionado com sucesso!');
-            document.getElementById('newStudentId').value = '';
+            alert('Aluno vinculado!');
             loadMyStudents();
         } else {
             const data = await res.json();
             alert(data.error || 'Erro ao vincular aluno.');
+        }
+    }
+
+    async function createClass() {
+        const payload = {
+            title: document.getElementById('eventTitle').value,
+            datetime: document.getElementById('eventDate').value,
+            link: document.getElementById('eventLink').value
+        };
+        const res = await fetchAPI('/api/classes', 'POST', payload);
+        if (res.ok) {
+            alert('Aula agendada!');
+            loadClasses();
+        }
+    }
+
+    async function createMeeting() {
+        // CORRIGIDO: Agora enviamos 'datetime' em vez de 'date'
+        const payload = {
+            student_id: document.getElementById('eventStudentId').value,
+            description: document.getElementById('eventTitle').value,
+            datetime: document.getElementById('eventDate').value,
+            link: document.getElementById('eventLink').value
+        };
+        const res = await fetchAPI('/api/meetings', 'POST', payload);
+        if (res.ok) {
+            alert('Reunião agendada!');
+            loadMeetings();
         }
     }
 
@@ -157,130 +172,59 @@
         if (res.ok) {
             alert('Arquivo enviado!');
             loadFiles();
-        } else {
-            alert('Erro no upload.');
         }
     }
+
+    // --- CARREGAMENTO DE LISTAS ---
 
     async function loadClasses() {
         const res = await fetchAPI('/api/classes');
         const classes = await res.json();
-        const list = document.getElementById('classList');
-        list.innerHTML = classes.map(c => `
-        <div class="item">
-            <strong>${c.title}</strong><br>
-            <small>${new Date(c.datetime).toLocaleString()}</small><br> <a href="${c.link}" target="_blank">Acessar Aula 🔗</a>
-        </div>
-    `).join('') || 'Nenhuma aula agendada.';
-    }
-
-    async function loadMyStudents() {
-        const res = await fetchAPI('/api/my-students');
-        const students = await res.json();
-        const list = document.getElementById('myStudentsList');
-        list.innerHTML = students.map(s => `
-            <div class="item">
-                <strong>ID: ${s.id} - ${s.name}</strong><br>
-                <small>${s.email}</small>
+        document.getElementById('classList').innerHTML = classes.map(c => `
+            <div style="padding: 10px; border-bottom: 1px solid #ddd;">
+                <strong>${c.title}</strong><br>
+                <small>${new Date(c.datetime).toLocaleString()}</small><br>
+                <a href="${c.link}" target="_blank">Acessar Aula</a>
             </div>
-        `).join('') || 'Você ainda não tem alunos vinculados.';
+        `).join('') || '<p>Nenhuma aula agendada.</p>';
     }
 
     async function loadMeetings() {
         const res = await fetchAPI('/api/meetings');
         const meetings = await res.json();
-        const list = document.getElementById(role === 'student' ? 'meetingList' : 'meetingList'); // Simplificado
-        // Se for professor, pode mostrar em um lugar específico ou junto
-        const target = role === 'student' ? document.getElementById('meetingList') : document.getElementById('myStudentsList');
-
-        let html = meetings.map(m => `
-            <div class="item" style="border-left: 4px solid var(--secondary);">
+        
+        // CORRIGIDO: Agora lê corretamente m.datetime e injeta em meetingList para todos os usuários
+        document.getElementById('meetingList').innerHTML = meetings.map(m => `
+            <div style="padding: 10px; border-left: 3px solid #007bff; background: #f9f9f9; margin-bottom: 5px;">
                 <strong>${m.description}</strong><br>
-                <small>${new Date(m.date).toLocaleString()}</small><br>
-                <a href="${m.link}" target="_blank">Link da Reunião 🎥</a>
+                <small>${new Date(m.datetime).toLocaleString()}</small><br>
+                <a href="${m.link}" target="_blank">Link da Reunião</a>
             </div>
-        `).join('');
+        `).join('') || '<p>Nenhuma reunião marcada.</p>';
+    }
 
-        if (role === 'student') list.innerHTML = html || 'Nenhuma reunião marcada.';
+    async function loadMyStudents() {
+        const res = await fetchAPI('/api/my-students');
+        const students = await res.json();
+        document.getElementById('myStudentsList').innerHTML = students.map(s => `
+            <div style="padding: 5px; background: #eee; margin-bottom: 5px; border-radius: 4px;">
+                ID: ${s.id} - <strong>${s.name}</strong>
+            </div>
+        `).join('') || '<p>Nenhum aluno vinculado.</p>';
     }
 
     async function loadFiles() {
         const res = await fetchAPI('/api/files');
         const files = await res.json();
-        const list = document.getElementById('fileList');
-        list.innerHTML = files.map(f => `
-            <div class="item">
-                <span>📄 ${f.filename}</span>
-                <a href="/api/files/download/${f.id}" class="btn-sm">Baixar</a>
+        document.getElementById('fileList').innerHTML = files.map(f => `
+            <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee;">
+                <span>${f.filename}</span>
+                <a href="/api/files/download/${f.id}">Baixar</a>
             </div>
-        `).join('') || 'Nenhum arquivo disponível.';
+        `).join('') || '<p>Nenhum arquivo disponível.</p>';
     }
 
-    async function createClass() {
-        const title = document.getElementById('classTitle').value;
-        const datetime = document.getElementById('classDate').value;
-        const link = document.getElementById('classLink').value;
-        const res = await fetchAPI('/api/classes', 'POST', { title, datetime, link });
-        if (res.ok) loadClasses();
-    }
-
-    async function createMeeting() {
-        const student_id = document.getElementById('meetStudentId').value;
-        const description = document.getElementById('meetDesc').value;
-        const date = document.getElementById('meetDate').value;
-        const link = document.getElementById('meetLink').value;
-        const res = await fetchAPI('/api/meetings', 'POST', { student_id, description, date, link });
-        if (res.ok) alert('Reunião agendada!');
-    }
-
+    // Inicializa a tela
     loadDashboard();
 </script>
-
-<style>
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
-        margin-top: 20px;
-    }
-
-    .card {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .item {
-        background: #f8f9fa;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        border-left: 4px solid var(--primary);
-    }
-
-    .btn-sm {
-        font-size: 0.8rem;
-        padding: 4px 8px;
-        background: var(--primary);
-        color: white;
-        border-radius: 4px;
-        text-decoration: none;
-        float: right;
-    }
-
-    hr {
-        margin: 15px 0;
-        border: 0;
-        border-top: 1px solid #eee;
-    }
-
-    input {
-        width: 100%;
-        padding: 8px;
-        margin-bottom: 5px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
-</style>
 {% endblock %}
