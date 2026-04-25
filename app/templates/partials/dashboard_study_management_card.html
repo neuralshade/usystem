@@ -1,0 +1,40 @@
+<section id="studyManagementCard" class="dashboard-card dashboard-card-wide is-hidden">
+    <div class="dashboard-card-group">
+        <div class="action-panel">
+            <h4>Montar um cronograma</h4>
+            <p class="field-hint">Organize o caminho de estudo com um plano simples, claro e possível de acompanhar.</p>
+            <input type="text" id="planTitle" placeholder="Ex.: preparação até a prova de novembro">
+            <select id="planDuration">
+                <option value="12">12 meses</option>
+                <option value="9">9 meses</option>
+                <option value="6">6 meses</option>
+            </select>
+            <textarea id="planNotes" placeholder="Observações que ajudem a guiar esse cronograma"></textarea>
+            <button id="createPlanButton" type="button">Salvar cronograma</button>
+        </div>
+
+        <div class="action-panel">
+            <h4>Adicionar uma meta</h4>
+            <p class="field-hint">Transforme o cronograma em passos menores para o aluno saber exatamente no que focar.</p>
+            <select id="taskPlanId">
+                <option value="">Escolha um cronograma</option>
+            </select>
+            <input type="number" id="taskWeekNumber" placeholder="Semana do plano">
+            <input type="text" id="taskSubject" placeholder="Matéria ou frente de estudo">
+            <input type="text" id="taskDescription" placeholder="O que precisa ser feito nesta etapa?">
+            <input type="date" id="taskDueDate">
+            <button id="createTaskButton" type="button">Salvar meta</button>
+        </div>
+
+        <div class="action-panel">
+            <h4>Registrar um simulado</h4>
+            <p class="field-hint">Use este espaço para acompanhar resultados e perceber com mais clareza onde ajustar a rota.</p>
+            <input type="text" id="examTitle" placeholder="Ex.: simulado completo de domingo">
+            <input type="number" id="examScore" placeholder="Nota" step="0.01">
+            <input type="date" id="examDate">
+            <input type="number" id="examCorrectAnswers" placeholder="Acertos">
+            <input type="number" id="examTotalQuestions" placeholder="Total de questões">
+            <button id="createExamButton" type="button">Guardar resultado</button>
+        </div>
+    </div>
+</section>

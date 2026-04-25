@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block body_class %}dashboard-page student-association-page{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <header class="dashboard-header">
+        <div>
+            <p class="section-kicker">Acompanhamento do aluno</p>
+            <h1 id="associationTitle">Carregando aluno...</h1>
+            <p id="associationSubtitle">Buscando as informações principais desta relação.</p>
+        </div>
+        <div class="inline-form association-header-actions">
+            <a class="link-button association-back-button" href="/dashboard">VOLTAR</a>
+            <button id="removeStudentLinkButton" type="button" class="association-disconnect-button" aria-label="Remover vínculo">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M9 7V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-2" />
+                    <path d="M14 12H3" />
+                    <path d="m6 9-3 3 3 3" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    {% include "partials/dashboard_chat_card.html" %}
+
+    <div id="dashboardContent" class="association-layout">
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <p class="section-kicker">Conversar e combinar</p>
+            </div>
+            <div class="grid-cards section-grid">
+                {% include "partials/dashboard_association_events_card.html" %}
+                {% include "partials/dashboard_meetings_card.html" %}
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <p class="section-kicker">Planejamento e acompanhamento</p>
+            </div>
+            <div class="grid-cards section-grid">
+                {% include "partials/dashboard_study_management_card.html" %}
+                {% include "partials/dashboard_progress_card.html" %}
+                {% include "partials/dashboard_plan_card.html" %}
+                {% include "partials/dashboard_exam_card.html" %}
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <p class="section-kicker">Materiais e apoio</p>
+            </div>
+            <div class="grid-cards section-grid">
+                {% include "partials/dashboard_links_card.html" %}
+                {% include "partials/dashboard_classes_card.html" %}
+                {% include "partials/dashboard_files_card.html" %}
+            </div>
+        </section>
+    </div>
+</div>
+<script>window.STUDENT_ID = {{ student_id }};</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chat_widget.js') }}"></script>
+<script src="{{ url_for('static', filename='js/student_association.js') }}"></script>
+{% endblock %}

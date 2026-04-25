@@ -1,3 +1,4 @@
 from .user import User, MentorStudent
 from .academic import Meeting, Class, ClassEnrollment, File
-from .study import StudyPlan, StudyTask, ExamResult
+from .chat import ChatThread, ChatMessage
+from .study import StudyPlan, StudyTask, ExamResult, SharedLink

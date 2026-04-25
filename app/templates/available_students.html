@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <header class="dashboard-header">
+        <div>
+            <h1>Alunos Disponíveis</h1>
+            <p>Associe novos alunos ao seu acompanhamento.</p>
+        </div>
+        <a class="link-button" href="/dashboard">Voltar ao dashboard</a>
+    </header>
+
+    <section class="dashboard-card">
+        <div id="availableStudentsList" class="list-container">Carregando alunos disponíveis...</div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/available_students.js') }}"></script>
+{% endblock %}

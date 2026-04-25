@@ -1,0 +1,25 @@
+<section id="associationEventsCard" class="dashboard-card dashboard-card-wide">
+    <div class="dashboard-card-group">
+        <div class="action-panel">
+            <h4>Marcar um encontro</h4>
+            <p class="field-hint">Quando você quiser conversar com calma, já deixe o horário, o foco do encontro e o link prontos.</p>
+            <div class="input-stack">
+                <input type="text" id="eventTitle" placeholder="Ex.: revisão da semana ou dúvidas de matemática">
+                <textarea id="eventDescription" placeholder="O que vocês vão conversar?"></textarea>
+                <input type="datetime-local" id="eventDate">
+                <input type="url" id="eventLink" placeholder="Cole aqui o link do encontro">
+                <button id="createMeetingButton" type="button" class="btn-success">Salvar encontro</button>
+            </div>
+        </div>
+
+        <div class="action-panel">
+            <h4>Links para este aluno</h4>
+            <p class="field-hint">Guarde aqui páginas, vídeos e referências que façam sentido para o momento de estudo dele.</p>
+            <div class="input-stack">
+                <input type="text" id="sharedLinkTitle" placeholder="Como você quer chamar esse link?">
+                <input type="url" id="sharedLinkUrl" placeholder="https://...">
+                <button id="createSharedLinkButton" type="button">Guardar link</button>
+            </div>
+        </div>
+    </div>
+</section>

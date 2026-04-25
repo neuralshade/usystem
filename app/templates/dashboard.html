@@ -1,230 +1,33 @@
 {% extends "base.html" %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block body_class %}dashboard-page{% endblock %}
+
 {% block content %}
 <div class="dashboard-container">
-    <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h1>Painel de Controle</h1>
-            <p>Bem-vindo, <span id="userName" style="font-weight: bold; color: #007bff;">...</span> 
-               (<span id="userRole">...</span>)</p>
-        </div>
-        <button class="btn" style="background: #dc3545;" onclick="logout()">Sair</button>
-    </header>
+    {% include "partials/dashboard_header.html" %}
 
     <div id="dashboardContent" class="grid-cards">
-        </div>
+        {% include "partials/dashboard_educator_panel.html" %}
+        {% include "partials/dashboard_my_mentor_card.html" %}
+        {% include "partials/dashboard_chat_card.html" %}
+        {% include "partials/dashboard_study_management_card.html" %}
+        {% include "partials/dashboard_progress_card.html" %}
+        {% include "partials/dashboard_plan_card.html" %}
+        {% include "partials/dashboard_exam_card.html" %}
+        {% include "partials/dashboard_links_card.html" %}
+        {% include "partials/dashboard_classes_card.html" %}
+        {% include "partials/dashboard_office_hours_card.html" %}
+        {% include "partials/dashboard_meetings_card.html" %}
+        {% include "partials/dashboard_files_card.html" %}
+    </div>
 </div>
+{% endblock %}
 
-<script>
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
-    const name = localStorage.getItem('name');
-
-    // Validação de Sessão
-    if (!token) window.location.href = '/';
-
-    // Simplificação: Tratar mentor e teacher como o mesmo perfil
-    const isEducator = (role === 'mentor' || role === 'teacher');
-    
-    document.getElementById('userName').innerText = name;
-    document.getElementById('userRole').innerText = isEducator ? 'Mentor/Professor' : 'Aluno';
-
-    function logout() {
-        localStorage.clear();
-        window.location.href = '/';
-    }
-
-    async function fetchAPI(url, method = 'GET', body = null) {
-        const options = {
-            method,
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        };
-        if (body) options.body = JSON.stringify(body);
-        return await fetch(url, options);
-    }
-
-    // Carregamento dinâmico da Interface
-    function loadDashboard() {
-        const container = document.getElementById('dashboardContent');
-        
-        let html = '';
-
-        // BLOCO 1: AULAS E ALUNOS (Somente para Educadores)
-        if (isEducator) {
-            html += `
-                <div class="card-item">
-                    <h4>🎓 Gerenciar Alunos</h4>
-                    <div style="display: flex; gap: 5px;">
-                        <input type="number" id="newStudentId" placeholder="ID do Aluno">
-                        <button onclick="addStudent()">Vincular</button>
-                    </div>
-                    <div id="myStudentsList" style="margin-top: 15px;">Carregando alunos...</div>
-                </div>
-
-                <div class="card-item">
-                    <h4>📅 Agendar Reunião ou Aula</h4>
-                    <input type="text" id="eventTitle" placeholder="Título / Objetivo">
-                    <input type="datetime-local" id="eventDate">
-                    <input type="url" id="eventLink" placeholder="Link da Transmissão">
-                    <input type="number" id="eventStudentId" placeholder="ID do Aluno (Apenas p/ Reunião)">
-                    
-                    <div style="display: flex; gap: 5px;">
-                        <button onclick="createMeeting()" style="background: #28a745;">Marcar Reunião</button>
-                        <button onclick="createClass()">Agendar Aula</button>
-                    </div>
-                </div>`;
-        }
-
-        // BLOCO 2: VISÃO GERAL (Comum a Todos)
-        html += `
-            <div class="card-item">
-                <h4>📚 Aulas Disponíveis</h4>
-                <div id="classList">Carregando aulas...</div>
-            </div>
-
-            <div class="card-item">
-                <h4>🤝 Minhas Reuniões</h4>
-                <div id="meetingList">Carregando reuniões...</div>
-            </div>
-
-            <div class="card-item">
-                <h4>📁 Materiais</h4>
-                <div style="display: flex; gap: 5px;">
-                    <input type="file" id="fileInput">
-                    <button onclick="uploadFile()">Enviar</button>
-                </div>
-                <div id="fileList" style="margin-top: 15px;">Carregando arquivos...</div>
-            </div>`;
-
-        container.innerHTML = html;
-
-        // Iniciar buscas na API
-        loadClasses();
-        loadMeetings();
-        loadFiles();
-        if (isEducator) loadMyStudents();
-    }
-
-    // --- FUNÇÕES DE INTEGRAÇÃO COM A API ---
-
-    async function addStudent() {
-        const studentId = document.getElementById('newStudentId').value;
-        if (!studentId) return alert('Informe o ID do aluno.');
-
-        const res = await fetchAPI('/api/assign-mentor', 'POST', {
-            student_id: studentId,
-            mentor_id: localStorage.getItem('id')
-        });
-
-        if (res.ok) {
-            alert('Aluno vinculado!');
-            loadMyStudents();
-        } else {
-            const data = await res.json();
-            alert(data.error || 'Erro ao vincular aluno.');
-        }
-    }
-
-    async function createClass() {
-        const payload = {
-            title: document.getElementById('eventTitle').value,
-            datetime: document.getElementById('eventDate').value,
-            link: document.getElementById('eventLink').value
-        };
-        const res = await fetchAPI('/api/classes', 'POST', payload);
-        if (res.ok) {
-            alert('Aula agendada!');
-            loadClasses();
-        }
-    }
-
-    async function createMeeting() {
-        // CORRIGIDO: Agora enviamos 'datetime' em vez de 'date'
-        const payload = {
-            student_id: document.getElementById('eventStudentId').value,
-            description: document.getElementById('eventTitle').value,
-            datetime: document.getElementById('eventDate').value,
-            link: document.getElementById('eventLink').value
-        };
-        const res = await fetchAPI('/api/meetings', 'POST', payload);
-        if (res.ok) {
-            alert('Reunião agendada!');
-            loadMeetings();
-        }
-    }
-
-    async function uploadFile() {
-        const fileInput = document.getElementById('fileInput');
-        if (fileInput.files.length === 0) return alert('Selecione um arquivo.');
-
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
-
-        const res = await fetch('/api/upload', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
-            body: formData
-        });
-
-        if (res.ok) {
-            alert('Arquivo enviado!');
-            loadFiles();
-        }
-    }
-
-    // --- CARREGAMENTO DE LISTAS ---
-
-    async function loadClasses() {
-        const res = await fetchAPI('/api/classes');
-        const classes = await res.json();
-        document.getElementById('classList').innerHTML = classes.map(c => `
-            <div style="padding: 10px; border-bottom: 1px solid #ddd;">
-                <strong>${c.title}</strong><br>
-                <small>${new Date(c.datetime).toLocaleString()}</small><br>
-                <a href="${c.link}" target="_blank">Acessar Aula</a>
-            </div>
-        `).join('') || '<p>Nenhuma aula agendada.</p>';
-    }
-
-    async function loadMeetings() {
-        const res = await fetchAPI('/api/meetings');
-        const meetings = await res.json();
-        
-        // CORRIGIDO: Agora lê corretamente m.datetime e injeta em meetingList para todos os usuários
-        document.getElementById('meetingList').innerHTML = meetings.map(m => `
-            <div style="padding: 10px; border-left: 3px solid #007bff; background: #f9f9f9; margin-bottom: 5px;">
-                <strong>${m.description}</strong><br>
-                <small>${new Date(m.datetime).toLocaleString()}</small><br>
-                <a href="${m.link}" target="_blank">Link da Reunião</a>
-            </div>
-        `).join('') || '<p>Nenhuma reunião marcada.</p>';
-    }
-
-    async function loadMyStudents() {
-        const res = await fetchAPI('/api/my-students');
-        const students = await res.json();
-        document.getElementById('myStudentsList').innerHTML = students.map(s => `
-            <div style="padding: 5px; background: #eee; margin-bottom: 5px; border-radius: 4px;">
-                ID: ${s.id} - <strong>${s.name}</strong>
-            </div>
-        `).join('') || '<p>Nenhum aluno vinculado.</p>';
-    }
-
-    async function loadFiles() {
-        const res = await fetchAPI('/api/files');
-        const files = await res.json();
-        document.getElementById('fileList').innerHTML = files.map(f => `
-            <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee;">
-                <span>${f.filename}</span>
-                <a href="/api/files/download/${f.id}">Baixar</a>
-            </div>
-        `).join('') || '<p>Nenhum arquivo disponível.</p>';
-    }
-
-    // Inicializa a tela
-    loadDashboard();
-</script>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chat_widget.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

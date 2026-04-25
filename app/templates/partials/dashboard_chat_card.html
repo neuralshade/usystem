@@ -1,0 +1,30 @@
+<aside id="chatCard" class="chat-widget is-hidden">
+    <button id="chatLauncher" type="button" class="chat-launcher" aria-controls="chatPanel" aria-expanded="false">
+        <span class="chat-launcher-edge" aria-hidden="true"></span>
+        <span class="chat-launcher-label">Chat</span>
+        <span id="chatLauncherBadge" class="chat-badge chat-launcher-badge is-hidden">0</span>
+    </button>
+
+    <section id="chatPanel" class="chat-panel" aria-hidden="true">
+        <div class="chat-card-header">
+            <div>
+                <h4>Canal de Atendimento</h4>
+                <p id="chatStatus" class="field-hint">Carregando conversa...</p>
+            </div>
+            <div class="chat-panel-actions">
+                <span id="chatUnreadBadge" class="chat-badge is-hidden">0 novas</span>
+                <button id="chatCollapseButton" type="button" class="chat-collapse-button" aria-label="Esconder chat">×</button>
+            </div>
+        </div>
+        <div id="chatMessages" class="chat-thread">
+            <p class="list-empty">Carregando mensagens...</p>
+        </div>
+        <div id="chatComposer" class="chat-composer">
+            <textarea id="chatMessageInput" placeholder="Escreva uma mensagem para este canal"></textarea>
+            <div class="chat-compose-actions">
+                <small class="muted-text">Enter envia • Shift + Enter quebra linha</small>
+                <button id="sendChatMessageButton" type="button" class="btn-success btn-inline">Enviar</button>
+            </div>
+        </div>
+    </section>
+</aside>

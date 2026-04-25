@@ -1,0 +1,14 @@
+<section id="officeHoursCard" class="dashboard-card">
+    <h4>Plantão Tira-Dúvidas</h4>
+    <div id="officeHoursForm" class="action-panel is-hidden">
+        <p class="field-hint">Abra um plantão ao vivo para toda a base de alunos com data, contexto e link de acesso.</p>
+        <div class="input-stack">
+            <input type="text" id="officeHoursTitle" placeholder="Título do plantão">
+            <textarea id="officeHoursDescription" placeholder="O que será atendido neste plantão?"></textarea>
+            <input type="datetime-local" id="officeHoursDate">
+            <input type="url" id="officeHoursLink" placeholder="https://...">
+            <button id="createOfficeHoursButton" type="button" class="btn-success">Iniciar plantão</button>
+        </div>
+    </div>
+    <div id="officeHoursList" class="list-container">Carregando plantões...</div>
+</section>
