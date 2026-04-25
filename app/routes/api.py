@@ -5,6 +5,7 @@ from app.extensions import db, bcrypt
 from app.models.models import User, MentorStudent, Meeting, Class, ClassEnrollment, File
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 from app.models.models import StudyPlan, StudyTask, ExamResult
+from flask import send_from_directory
 
 api_bp = Blueprint('api', __name__)
 
@@ -82,6 +83,9 @@ def handle_meetings():
     current_user_id = int(get_jwt_identity())
     role = claims.get('role')
 
+    if role not in ['mentor', 'teacher']:
+            return jsonify({"error": "Apenas mentores/professores podem criar reuniões"}), 403
+
     if request.method == 'POST':
         if role != 'mentor':
             return jsonify({"error": "Apenas mentores podem criar reuniões"}), 403
@@ -113,6 +117,9 @@ def handle_classes():
     claims = get_jwt()
     current_user_id = int(get_jwt_identity())
     role = claims.get('role')
+
+    if role not in ['teacher', 'mentor']:
+            return jsonify({"error": "Apenas professores/mentores podem criar aulas"}), 403
     
     if request.method == 'POST':
         if role != 'teacher':
@@ -240,3 +247,9 @@ def handle_exam_results():
     # GET
     results = ExamResult.query.filter_by(student_id=current_user_id).all()
     return jsonify([{"id": r.id, "exam_title": r.exam_title, "score": r.score, "date": r.date} for r in results]), 200
+
+@api_bp.route('/files/download/<int:id>', methods=['GET'])
+@jwt_required()
+def download_file(id):
+    file = File.query.get_or_404(id)
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], file.filename, as_attachment=True)
