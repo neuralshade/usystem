@@ -31,7 +31,8 @@ def login():
     user = User.query.filter_by(email=data.get('email')).first()
     if user and bcrypt.check_password_hash(user.password_hash, data.get('password')):
         token = create_access_token(identity=str(user.id), additional_claims={"role": user.role, "name": user.name})
-        return jsonify({"access_token": token}), 200
+        # Correção: Enviar 'role' e 'name' diretamente na resposta da API
+        return jsonify({"access_token": token, "role": user.role, "name": user.name}), 200
     return jsonify({"error": "Credenciais inválidas"}), 401
 
 @api_bp.route('/users', methods=['GET'])
