@@ -1,10 +1,17 @@
+{% from "partials/_icons.html" import icon %}
 <header class="dashboard-header">
     <div>
+        <p class="section-kicker">Painel principal</p>
         <h1>Painel de Controle</h1>
         <p>
             Bem-vindo, <span id="userName" class="dashboard-highlight">...</span>
             (<span id="userRole">...</span>)
         </p>
     </div>
-    <button class="btn-danger" id="logoutButton" type="button">Sair</button>
+    <button class="btn-danger" id="logoutButton" type="button">
+        <span class="icon-inline">
+            {{ icon('log-out') }}
+            <span>Encerrar sessão</span>
+        </span>
+    </button>
 </header>

@@ -49,7 +49,10 @@ function renderAvailableStudents(students, errorMessage) {
                 <strong>${student.name}</strong><br>
                 <small>${student.email}</small>
             </div>
-            <button type="button" onclick="linkStudent(${student.id})">Vincular</button>
+            <div class="flex items-center gap-3">
+                <span class="tag">Disponível</span>
+                <button type="button" onclick="linkStudent(${student.id})">Vincular</button>
+            </div>
         </div>
     `).join('');
 }

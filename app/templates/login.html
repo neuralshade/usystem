@@ -1,12 +1,35 @@
 {% extends "base.html" %}
+{% block title %}Entrar | USystem{% endblock %}
+{% block page_shell_class %}auth-shell{% endblock %}
+{% block page_container_class %}w-full max-w-lg{% endblock %}
 {% block content %}
-    <h2>Acesso ao Sistema</h2>
-    <form id="loginForm">
-        <input type="email" id="email" placeholder="E-mail" required>
-        <input type="password" id="password" placeholder="Senha" required>
-        <button type="submit">Entrar</button>
-    </form>
-    <p>Não possui conta? <a href="/register">Cadastre-se</a></p>
+    <section class="auth-card">
+        <div class="hero-backdrop" aria-hidden="true"></div>
+        <div class="relative">
+            <span class="auth-kicker">Area do aluno</span>
+            <h1 class="auth-title">Seu painel de estudos, encontros e materiais em um só lugar.</h1>
+            <p class="auth-subtitle">Entre para acompanhar cronogramas, simulados, aulas e o canal de atendimento com uma interface mais clara e organizada.</p>
+
+            <form id="loginForm" class="form-stack">
+                <div>
+                    <label class="field-label" for="email">E-mail</label>
+                    <input type="email" id="email" placeholder="voce@exemplo.com" required>
+                </div>
+                <div>
+                    <label class="field-label" for="password">Senha</label>
+                    <input type="password" id="password" placeholder="Digite sua senha" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="w-full justify-center">Entrar no painel</button>
+                </div>
+            </form>
+
+            <p class="mt-6 text-sm text-neutral-700">
+                Não possui conta?
+                <a class="font-semibold" href="/register">Cadastre-se</a>
+            </p>
+        </div>
+    </section>
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();

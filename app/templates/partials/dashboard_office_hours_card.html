@@ -1,5 +1,12 @@
+{% from "partials/_icons.html" import icon %}
 <section id="officeHoursCard" class="dashboard-card">
-    <h4>Plantão Tira-Dúvidas</h4>
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <p class="section-kicker">Suporte coletivo</p>
+            <h4 class="icon-title">{{ icon('calendar', 'h-5 w-5') }}<span>Plantão Tira-Dúvidas</span></h4>
+        </div>
+        <span class="tag">Canal aberto</span>
+    </div>
     <div id="officeHoursForm" class="action-panel is-hidden">
         <p class="field-hint">Abra um plantão ao vivo para toda a base de alunos com data, contexto e link de acesso.</p>
         <div class="input-stack">

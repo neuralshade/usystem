@@ -1,0 +1,19 @@
+{
+  "name": "usystem",
+  "private": true,
+  "scripts": {
+    "icons:prepare": "node ./scripts/prepare-icons.mjs",
+    "css:build": "tailwindcss -c tailwind.config.js -i ./app/static/src/styles.css -o ./app/static/css/app.css --minify",
+    "css:watch": "tailwindcss -c tailwind.config.js -i ./app/static/src/styles.css -o ./app/static/css/app.css --watch",
+    "frontend:build": "npm run icons:prepare && npm run css:build",
+    "frontend:watch": "npm run icons:prepare && npm run css:watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.11",
+    "autoprefixer": "^10.5.0",
+    "flowbite": "^4.0.1",
+    "lucide-static": "^1.11.0",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^3.4.17"
+  }
+}

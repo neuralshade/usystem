@@ -1,4 +1,11 @@
+{% from "partials/_icons.html" import icon %}
 <section id="classesCard" class="dashboard-card">
-    <h4>Aulas disponíveis</h4>
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <p class="section-kicker">Agenda</p>
+            <h4 class="icon-title">{{ icon('calendar', 'h-5 w-5') }}<span>Aulas disponíveis</span></h4>
+        </div>
+        <span class="tag">Ao vivo</span>
+    </div>
     <div id="classList" class="list-container">Separando as aulas que podem ajudar neste momento...</div>
 </section>

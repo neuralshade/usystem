@@ -354,8 +354,11 @@ async function loadFiles() {
     const files = await res.json();
     const html = files.map((item) => `
         <div class="list-row file-row">
-            <span>${item.filename}</span>
-            <a href="/api/files/download/${item.id}">Baixar</a>
+            <div>
+                <strong>${item.filename}</strong><br>
+                <small class="muted-text">Material disponível para este aluno.</small>
+            </div>
+            <a class="list-row-link" href="/api/files/download/${item.id}">Baixar</a>
         </div>
     `).join('');
     renderList('fileList', html, 'Nenhum material foi enviado ainda.');

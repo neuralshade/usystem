@@ -1,18 +1,49 @@
 {% extends "base.html" %}
+{% block title %}Cadastro | USystem{% endblock %}
+{% block page_shell_class %}auth-shell{% endblock %}
+{% block page_container_class %}w-full max-w-xl{% endblock %}
 {% block content %}
-    <h2>Cadastro de Usuário</h2>
-    <form id="registerForm">
-        <input type="text" id="name" placeholder="Nome Completo" required>
-        <input type="email" id="email" placeholder="E-mail" required>
-        <input type="password" id="password" placeholder="Senha" required>
-        <select id="role" required>
-            <option value="student">Aluno</option>
-            <option value="mentor">Mentor</option>
-            <option value="teacher">Professor</option>
-        </select>
-        <button type="submit">Cadastrar</button>
-    </form>
-    <p>Já possui conta? <a href="/">Entrar aqui</a></p>
+    <section class="auth-card">
+        <div class="hero-backdrop" aria-hidden="true"></div>
+        <div class="relative">
+            <span class="auth-kicker">Criar conta</span>
+            <h1 class="auth-title">Cadastre um novo acesso e organize o acompanhamento desde o primeiro dia.</h1>
+            <p class="auth-subtitle">Escolha o perfil correto para liberar o fluxo de estudos, mentorias e materiais compartilhados dentro da plataforma.</p>
+
+            <form id="registerForm" class="form-stack">
+                <div>
+                    <label class="field-label" for="name">Nome completo</label>
+                    <input type="text" id="name" placeholder="Seu nome completo" required>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="field-label" for="email">E-mail</label>
+                        <input type="email" id="email" placeholder="voce@exemplo.com" required>
+                    </div>
+                    <div>
+                        <label class="field-label" for="role">Perfil</label>
+                        <select id="role" required>
+                            <option value="student">Aluno</option>
+                            <option value="mentor">Mentor</option>
+                            <option value="teacher">Professor</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="field-label" for="password">Senha</label>
+                    <input type="password" id="password" placeholder="Crie uma senha segura" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="w-full justify-center">Criar conta</button>
+                </div>
+            </form>
+
+            <p class="mt-6 text-sm text-neutral-700">
+                Já possui conta?
+                <a class="font-semibold" href="/">Entrar aqui</a>
+            </p>
+        </div>
+    </section>
     <script>
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();

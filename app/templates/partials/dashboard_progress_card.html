@@ -1,4 +1,11 @@
+{% from "partials/_icons.html" import icon %}
 <section id="progressCard" class="dashboard-card">
-    <h4>Visão do progresso</h4>
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <p class="section-kicker">Resumo</p>
+            <h4 class="icon-title">{{ icon('bar-chart-3', 'h-5 w-5') }}<span>Visão do progresso</span></h4>
+        </div>
+        <span class="tag">Indicadores</span>
+    </div>
     <div id="progressSummary" class="list-container">Preparando um retrato rápido do momento atual...</div>
 </section>

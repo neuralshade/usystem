@@ -3,14 +3,31 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Plataforma Educacional</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}USystem{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
     {% block extra_head %}{% endblock %}
 </head>
 
 <body class="{% block body_class %}{% endblock %}">
-    <div class="container">
-        {% block content %}{% endblock %}
+    <div class="site-shell">
+        <header class="app-topbar">
+            <div class="app-topbar-inner">
+                <a class="app-topbar-brand" href="/dashboard">US.</a>
+                <nav class="app-topbar-nav" aria-label="Principal">
+                    <a class="app-topbar-link" href="/dashboard">Dashboard</a>
+                    <a class="app-topbar-link" href="/students/available">Directory</a>
+                    <a class="app-topbar-link" href="/">Log in</a>
+                    <a class="app-topbar-link app-topbar-link-strong" href="/register">Sign Up</a>
+                </nav>
+            </div>
+        </header>
+
+        <div class="{% block page_shell_class %}app-shell{% endblock %}">
+            <div class="{% block page_container_class %}page-container{% endblock %}">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
     </div>
     {% block scripts %}{% endblock %}
 </body>

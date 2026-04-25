@@ -45,6 +45,7 @@ htmlcov/
 .idea/
 *.swp
 *.swo
+node_modules/
 
 # =========================
 # OS files
@@ -69,6 +70,7 @@ instance/
 # Logs
 # =========================
 *.log
+npm-debug.log*
 
 # =========================
 # Python version manager

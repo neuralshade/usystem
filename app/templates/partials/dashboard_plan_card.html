@@ -1,4 +1,11 @@
+{% from "partials/_icons.html" import icon %}
 <section id="planCard" class="dashboard-card dashboard-card-wide">
-    <h4>Cronograma</h4>
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <p class="section-kicker">Planejamento</p>
+            <h4 class="icon-title">{{ icon('book-open', 'h-5 w-5') }}<span>Cronograma</span></h4>
+        </div>
+        <span class="tag">Linha do tempo</span>
+    </div>
     <div id="planList" class="list-container">Buscando os cronogramas que já foram montados...</div>
 </section>

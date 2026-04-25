@@ -1,10 +1,17 @@
+{% from "partials/_icons.html" import icon %}
 <section id="educatorPanel" class="dashboard-card dashboard-card-wide is-hidden">
     <div class="dashboard-header">
         <div>
-            <h4>Meus Alunos</h4>
+            <p class="section-kicker">Gestao de carteira</p>
+            <h4 class="icon-title">{{ icon('users', 'h-5 w-5') }}<span>Meus Alunos</span></h4>
             <p class="field-hint">Clique em um aluno para abrir a página da associação.</p>
         </div>
-        <a class="link-button" href="/students/available">Vincular novo aluno</a>
+        <a class="link-button" href="/students/available">
+            <span class="icon-inline">
+                {{ icon('user-plus') }}
+                <span>Vincular novo aluno</span>
+            </span>
+        </a>
     </div>
     <div id="managedStudentsTable" class="list-container">Carregando alunos vinculados...</div>
 </section>

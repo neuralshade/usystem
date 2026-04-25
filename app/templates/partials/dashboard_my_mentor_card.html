@@ -1,4 +1,11 @@
+{% from "partials/_icons.html" import icon %}
 <section id="mentorCard" class="dashboard-card is-hidden">
-    <h4>Meu Mentor</h4>
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <p class="section-kicker">Acompanhamento</p>
+            <h4 class="icon-title">{{ icon('graduation-cap', 'h-5 w-5') }}<span>Meu Mentor</span></h4>
+        </div>
+        <span class="tag">Contato ativo</span>
+    </div>
     <div id="mentorInfo" class="list-container">Carregando mentor...</div>
 </section>

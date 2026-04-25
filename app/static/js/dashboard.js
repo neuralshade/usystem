@@ -153,9 +153,14 @@ async function loadManagedStudents() {
     const students = managedStudentsCache;
     const html = students.map((student) => `
         <a class="student-link-row" href="/students/${student.id}">
-            <strong>${student.name}</strong>
-            ${unreadMap[student.id] ? `<span class="chat-badge chat-badge-inline">${unreadMap[student.id]} nova${unreadMap[student.id] > 1 ? 's' : ''}</span>` : ''}<br>
-            <small>${student.email}</small>
+            <div>
+                <strong>${student.name}</strong>
+                <br>
+                <small>${student.email}</small>
+            </div>
+            <div>
+                ${unreadMap[student.id] ? `<span class="chat-badge chat-badge-inline">${unreadMap[student.id]} nova${unreadMap[student.id] > 1 ? 's' : ''}</span>` : '<span class="tag">Sem novas mensagens</span>'}
+            </div>
         </a>
     `).join('');
 
@@ -348,8 +353,12 @@ async function loadFiles() {
     const files = await res.json();
     const html = files.map((item) => `
         <div class="list-row file-row">
-            <span>${item.filename}</span>
-            <a href="/api/files/download/${item.id}">Baixar</a>
+            <div>
+                <strong>${item.filename}</strong>
+                <br>
+                <small class="muted-text">Arquivo compartilhado na sua biblioteca.</small>
+            </div>
+            <a class="list-row-link" href="/api/files/download/${item.id}">Baixar</a>
         </div>
     `).join('');
     renderList('fileList', html, 'Nenhum arquivo disponivel.');

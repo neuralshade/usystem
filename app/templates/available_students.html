@@ -1,20 +1,29 @@
 {% extends "base.html" %}
-
-{% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-{% endblock %}
-
+{% from "partials/_icons.html" import icon %}
+{% block title %}Alunos Disponíveis | USystem{% endblock %}
 {% block content %}
 <div class="dashboard-container">
     <header class="dashboard-header">
         <div>
+            <p class="section-kicker">Gestao de vinculos</p>
             <h1>Alunos Disponíveis</h1>
-            <p>Associe novos alunos ao seu acompanhamento.</p>
+            <p>Associe novos alunos ao seu acompanhamento com uma lista mais clara e um fluxo direto de ação.</p>
         </div>
-        <a class="link-button" href="/dashboard">Voltar ao dashboard</a>
+        <a class="link-button" href="/dashboard">
+            <span class="icon-inline">
+                {{ icon('arrow-left') }}
+                <span>Voltar ao dashboard</span>
+            </span>
+        </a>
     </header>
 
     <section class="dashboard-card">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h4 class="icon-title">{{ icon('user-plus', 'h-5 w-5') }}<span>Fila pronta para vínculo</span></h4>
+                <p class="field-hint">Cada aluno exibido aqui ainda pode ser associado ao seu acompanhamento.</p>
+            </div>
+        </div>
         <div id="availableStudentsList" class="list-container">Carregando alunos disponíveis...</div>
     </section>
 </div>

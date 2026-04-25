@@ -1,9 +1,6 @@
 {% extends "base.html" %}
-
-{% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-{% endblock %}
-
+{% from "partials/_icons.html" import icon %}
+{% block title %}Acompanhamento do Aluno | USystem{% endblock %}
 {% block body_class %}dashboard-page student-association-page{% endblock %}
 
 {% block content %}
@@ -15,13 +12,14 @@
             <p id="associationSubtitle">Buscando as informações principais desta relação.</p>
         </div>
         <div class="inline-form association-header-actions">
-            <a class="link-button association-back-button" href="/dashboard">VOLTAR</a>
+            <a class="link-button association-back-button" href="/dashboard">
+                <span class="icon-inline">
+                    {{ icon('arrow-left') }}
+                    <span>VOLTAR</span>
+                </span>
+            </a>
             <button id="removeStudentLinkButton" type="button" class="association-disconnect-button" aria-label="Remover vínculo">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M9 7V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-2" />
-                    <path d="M14 12H3" />
-                    <path d="m6 9-3 3 3 3" />
-                </svg>
+                {{ icon('unlink-2', 'h-5 w-5') }}
             </button>
         </div>
     </header>

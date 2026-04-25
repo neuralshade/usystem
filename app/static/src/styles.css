@@ -1,0 +1,491 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply min-h-screen bg-white text-black antialiased;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  }
+
+  a {
+    @apply text-black transition-colors duration-150;
+  }
+
+  a:hover {
+    @apply bg-black text-white;
+  }
+
+  input,
+  textarea,
+  select {
+    @apply block w-full rounded-none border border-black bg-white px-4 py-3 text-sm leading-6 text-black placeholder:text-neutral-500 focus:border-black focus:outline-none focus:ring-0;
+  }
+
+  textarea {
+    @apply resize-y;
+  }
+
+  input[type="file"] {
+    @apply px-3 py-2.5 file:mr-3 file:rounded-none file:border file:border-black file:bg-black file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-white hover:file:text-black;
+  }
+
+  button {
+    @apply transition-colors duration-150;
+  }
+}
+
+@layer components {
+  .site-shell {
+    @apply min-h-screen bg-white;
+  }
+
+  .app-topbar {
+    @apply border-b-2 border-black bg-white;
+  }
+
+  .app-topbar-inner {
+    @apply mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8;
+  }
+
+  .app-topbar-brand {
+    @apply inline-flex border border-black px-4 py-3 text-2xl font-extrabold tracking-tight;
+  }
+
+  .app-topbar-brand:hover {
+    @apply bg-black text-white;
+  }
+
+  .app-topbar-nav {
+    @apply flex flex-wrap items-center gap-0 border border-black;
+  }
+
+  .app-topbar-link {
+    @apply border-r border-black px-4 py-3 text-sm font-medium;
+  }
+
+  .app-topbar-link:last-child {
+    @apply border-r-0;
+  }
+
+  .app-topbar-link:hover,
+  .app-topbar-link-strong {
+    @apply bg-black text-white;
+  }
+
+  .app-shell,
+  .auth-shell {
+    @apply px-4 py-6 sm:px-6 lg:px-8 lg:py-8;
+  }
+
+  .auth-shell {
+    @apply flex justify-center;
+  }
+
+  .page-container {
+    @apply mx-auto max-w-7xl;
+  }
+
+  .auth-card,
+  .dashboard-header,
+  .dashboard-card,
+  .action-panel,
+  .list-empty,
+  .list-row,
+  .student-row,
+  .mentor-row,
+  .meeting-row,
+  .plan-row,
+  .overview-row,
+  .student-link-row,
+  .shared-link-row,
+  .student-option-row,
+  .progress-stat {
+    @apply rounded-none border border-black bg-white shadow-none;
+  }
+
+  .auth-card {
+    @apply mx-auto w-full max-w-xl p-8;
+  }
+
+  .auth-card::before,
+  .hero-backdrop,
+  .chat-launcher-edge {
+    @apply hidden;
+  }
+
+  .auth-kicker,
+  .tag,
+  .chat-badge {
+    @apply inline-flex items-center border border-black bg-black px-2 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-white;
+  }
+
+  .auth-title {
+    @apply mt-6 text-3xl font-extrabold tracking-tight sm:text-4xl;
+  }
+
+  .auth-subtitle {
+    @apply mt-3 max-w-2xl text-sm leading-6 text-neutral-700;
+  }
+
+  .form-stack {
+    @apply mt-8 grid gap-5;
+  }
+
+  .form-actions {
+    @apply mt-6;
+  }
+
+  .field-label {
+    @apply mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-black;
+  }
+
+  .dashboard-container,
+  .association-layout,
+  .dashboard-section {
+    @apply grid gap-6;
+  }
+
+  .dashboard-header {
+    @apply gap-6 p-6 lg:flex lg:items-end lg:justify-between;
+  }
+
+  .dashboard-header h1 {
+    @apply text-3xl font-extrabold tracking-tight sm:text-4xl;
+  }
+
+  .dashboard-header p {
+    @apply mt-3 text-sm leading-6 text-neutral-700;
+  }
+
+  .dashboard-highlight {
+    @apply font-semibold text-black;
+  }
+
+  .grid-cards {
+    @apply grid gap-6 lg:grid-cols-2 2xl:grid-cols-3;
+  }
+
+  .section-grid {
+    @apply grid gap-6 lg:grid-cols-2;
+  }
+
+  .dashboard-card {
+    @apply overflow-hidden p-6;
+  }
+
+  .dashboard-card > h4,
+  .card-title,
+  .dashboard-card .dashboard-header h4,
+  .action-panel h4 {
+    @apply text-lg font-semibold tracking-tight;
+  }
+
+  .dashboard-card .dashboard-header {
+    @apply mb-0 border border-black bg-neutral-100 p-5;
+  }
+
+  .dashboard-card-wide {
+    @apply lg:col-span-2 2xl:col-span-3;
+  }
+
+  .dashboard-card-group {
+    @apply grid gap-6 xl:grid-cols-2 2xl:grid-cols-3;
+  }
+
+  .section-heading {
+    @apply border-b border-black pb-2;
+  }
+
+  .section-kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.22em] text-neutral-700;
+  }
+
+  .field-hint,
+  .muted-text {
+    @apply mt-2 text-sm leading-6 text-neutral-600;
+  }
+
+  .list-container {
+    @apply mt-5 grid gap-3;
+  }
+
+  .list-empty {
+    @apply border-dashed px-4 py-6 text-sm text-neutral-600;
+  }
+
+  .student-link-row,
+  .student-option-row {
+    @apply flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .student-link-row:hover,
+  .student-option-row:hover,
+  .list-row:hover,
+  .meeting-row:hover,
+  .plan-row:hover,
+  .shared-link-row:hover {
+    @apply bg-neutral-100;
+  }
+
+  .list-row-head,
+  .file-row,
+  .inline-form,
+  .association-header-actions {
+    @apply flex gap-3;
+  }
+
+  .list-row-head,
+  .file-row {
+    @apply items-start justify-between;
+  }
+
+  .inline-form {
+    @apply flex-col sm:flex-row sm:items-center;
+  }
+
+  .input-stack {
+    @apply mt-4 grid gap-3;
+  }
+
+  .input-stack textarea,
+  .action-panel > textarea {
+    @apply min-h-[7rem];
+  }
+
+  .ui-icon {
+    @apply inline-block h-4 w-4 shrink-0 align-middle;
+  }
+
+  .icon-inline {
+    @apply inline-flex items-center gap-2;
+  }
+
+  .icon-title {
+    @apply inline-flex items-center gap-3;
+  }
+
+  .icon-title .ui-icon,
+  .icon-inline .ui-icon {
+    @apply text-black;
+  }
+
+  .btn-base {
+    @apply inline-flex items-center justify-center rounded-none border border-black px-4 py-3 text-sm font-semibold;
+  }
+
+  button,
+  .link-button,
+  .association-back-button,
+  .btn-danger,
+  .btn-success,
+  .btn-secondary {
+    @apply btn-base bg-white text-black;
+  }
+
+  button:hover,
+  .link-button:hover,
+  .association-back-button:hover,
+  .btn-danger:hover,
+  .btn-success:hover,
+  .btn-secondary:hover {
+    @apply bg-black text-white;
+  }
+
+  .btn-success {
+    @apply bg-black text-white;
+  }
+
+  .btn-success:hover {
+    @apply bg-white text-black;
+  }
+
+  .btn-inline {
+    @apply w-auto px-4 py-2.5;
+  }
+
+  .association-back-button {
+    @apply uppercase tracking-[0.18em];
+  }
+
+  .association-disconnect-button {
+    @apply h-12 w-12 min-w-[3rem] p-0;
+  }
+
+  .association-disconnect-button svg {
+    @apply h-5 w-5;
+  }
+
+  .progress-row {
+    @apply grid gap-3 sm:grid-cols-2;
+  }
+
+  .progress-stat {
+    @apply flex min-h-[7rem] flex-col justify-between;
+  }
+
+  .chat-badge-inline {
+    @apply ml-2;
+  }
+
+  .chat-widget {
+    @apply fixed inset-y-0 right-0 z-50 flex items-stretch;
+  }
+
+  .chat-widget.is-collapsed {
+    pointer-events: none;
+  }
+
+  .chat-widget.is-collapsed .chat-launcher {
+    pointer-events: auto;
+  }
+
+  .chat-widget.is-expanded {
+    pointer-events: auto;
+  }
+
+  .chat-widget.is-collapsed .chat-panel {
+    @apply pointer-events-none translate-x-full opacity-0;
+  }
+
+  .chat-widget.is-expanded .chat-panel {
+    @apply translate-x-0 opacity-100;
+  }
+
+  .chat-launcher {
+    @apply absolute bottom-6 right-0 flex h-14 translate-y-0 items-center justify-center border border-r-0 border-black bg-white px-4 text-black hover:bg-black hover:text-white;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .chat-launcher-label {
+    @apply text-xs font-semibold uppercase tracking-[0.24em];
+  }
+
+  .chat-launcher-badge {
+    @apply absolute left-2 top-1.5 border-black bg-black text-white;
+  }
+
+  .chat-panel {
+    @apply flex h-screen w-[min(26rem,calc(100vw-4rem))] flex-col overflow-hidden rounded-none border-l-2 border-black bg-white transition duration-150;
+  }
+
+  .chat-card-header {
+    @apply items-center justify-between border-b-2 border-black p-4;
+  }
+
+  .chat-card-header-left,
+  .chat-card-header-right,
+  .chat-compose-actions {
+    @apply flex items-center gap-3;
+  }
+
+  .chat-card-header-right {
+    @apply justify-end;
+  }
+
+  .chat-header-label {
+    @apply text-sm font-semibold uppercase tracking-[0.28em] text-black;
+  }
+
+  .chat-thread {
+    @apply flex-1 overflow-y-auto px-4 py-4;
+  }
+
+  .chat-message {
+    @apply mb-3 flex;
+  }
+
+  .chat-message.is-mine {
+    @apply justify-end;
+  }
+
+  .chat-bubble {
+    @apply max-w-[78%] border border-black bg-white px-4 py-3 text-sm text-black;
+  }
+
+  .chat-message.is-mine .chat-bubble {
+    @apply bg-black text-white;
+  }
+
+  .chat-message-meta {
+    @apply mt-2 text-xs text-neutral-600;
+  }
+
+  .chat-message.is-mine .chat-message-meta {
+    @apply text-neutral-300;
+  }
+
+  .chat-composer {
+    @apply flex items-center gap-3 border-t-2 border-black bg-white px-4 py-4;
+  }
+
+  #chatMessageInput {
+    @apply min-h-0 flex-1 rounded-none border border-black bg-white px-4 py-3 text-black;
+    height: 52px;
+  }
+
+  .chat-compose-actions {
+    @apply justify-center;
+  }
+
+  .chat-compose-actions .btn-inline {
+    @apply h-[52px] w-[52px] bg-black px-0 text-white hover:bg-white hover:text-black;
+    border-radius: 4px;
+  }
+
+  .is-hidden {
+    @apply hidden;
+  }
+}
+
+@layer utilities {
+  @media (max-width: 1024px) {
+    .dashboard-card-wide {
+      @apply lg:col-span-1 2xl:col-span-1;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .app-shell,
+    .auth-shell {
+      @apply px-3 py-4;
+    }
+
+    .app-topbar-inner {
+      @apply gap-3 px-3 py-3;
+    }
+
+    .app-topbar-nav {
+      @apply w-full flex-col items-stretch;
+    }
+
+    .app-topbar-link {
+      @apply border-r-0 border-b px-4 py-3;
+    }
+
+    .app-topbar-link:last-child {
+      @apply border-b-0;
+    }
+
+    .chat-widget {
+      @apply inset-x-4 inset-y-auto bottom-4 block;
+    }
+
+    .chat-panel {
+      @apply mb-16 h-[80vh] w-full border-2 border-black;
+    }
+
+    .chat-launcher {
+      @apply bottom-0 right-0 px-4;
+    }
+  }
+}

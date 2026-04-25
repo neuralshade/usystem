@@ -1,4 +1,11 @@
+{% from "partials/_icons.html" import icon %}
 <section id="linksCard" class="dashboard-card">
-    <h4>Links guardados</h4>
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <p class="section-kicker">Recursos</p>
+            <h4 class="icon-title">{{ icon('link', 'h-5 w-5') }}<span>Links guardados</span></h4>
+        </div>
+        <span class="tag">Curadoria</span>
+    </div>
     <div id="sharedLinksList" class="list-container">Reunindo os links que já foram compartilhados...</div>
 </section>

@@ -6,6 +6,7 @@ function createChatWidget(config) {
         initialized: false,
         isCollapsed: true,
         hasLoadedMessages: false,
+        isSending: false,
     };
 
     const elements = {
@@ -95,6 +96,16 @@ function createChatWidget(config) {
         if (elements.status) {
             elements.status.innerText = text;
         }
+    }
+
+    function setSendingState(isSending) {
+        state.isSending = isSending;
+        if (!elements.sendButton) {
+            return;
+        }
+
+        elements.sendButton.disabled = isSending;
+        elements.sendButton.setAttribute('aria-disabled', isSending ? 'true' : 'false');
     }
 
     function setUnreadBadge(count) {
@@ -223,27 +234,33 @@ function createChatWidget(config) {
 
     async function sendMessage() {
         const content = elements.input?.value.trim();
-        if (!content) {
+        if (!content || state.isSending) {
             return;
         }
 
-        const res = await config.authFetch('/api/chat/messages', {
-            method: 'POST',
-            body: JSON.stringify({
-                ...requestStudentId(),
-                content
-            })
-        });
-        const data = await res.json();
-        if (!res.ok) {
-            window.alert(data.error || 'Erro ao enviar mensagem.');
-            return;
-        }
+        setSendingState(true);
 
-        elements.input.value = '';
-        appendMessages([data.chat_message]);
-        if (!state.isCollapsed) {
-            await markAsRead(true);
+        try {
+            const res = await config.authFetch('/api/chat/messages', {
+                method: 'POST',
+                body: JSON.stringify({
+                    ...requestStudentId(),
+                    content
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                window.alert(data.error || 'Erro ao enviar mensagem.');
+                return;
+            }
+
+            elements.input.value = '';
+            appendMessages([data.chat_message]);
+            if (!state.isCollapsed) {
+                await markAsRead(true);
+            }
+        } finally {
+            setSendingState(false);
         }
     }
 

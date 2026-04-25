@@ -1,8 +1,20 @@
+{% from "partials/_icons.html" import icon %}
 <section id="filesCard" class="dashboard-card">
-    <h4>Materiais de apoio</h4>
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <p class="section-kicker">Biblioteca</p>
+            <h4 class="icon-title">{{ icon('paperclip', 'h-5 w-5') }}<span>Materiais de apoio</span></h4>
+        </div>
+        <span class="tag">Arquivos</span>
+    </div>
     <div id="fileUploadControls" class="inline-form">
         <input type="file" id="fileInput">
-        <button id="uploadFileButton" type="button">Enviar material</button>
+        <button id="uploadFileButton" type="button">
+            <span class="icon-inline">
+                {{ icon('paperclip') }}
+                <span>Enviar material</span>
+            </span>
+        </button>
     </div>
     <div id="fileList" class="list-container">Separando os materiais já enviados...</div>
 </section>
