@@ -11,6 +11,7 @@
 
 <body class="{% block body_class %}{% endblock %}">
     <div class="site-shell">
+        {% block topbar %}
         <header class="app-topbar">
             <div class="app-topbar-inner">
                 <a class="app-topbar-brand" href="/dashboard">US.</a>
@@ -20,6 +21,7 @@
                 </nav>
             </div>
         </header>
+        {% endblock %}
 
         <div class="{% block page_shell_class %}app-shell{% endblock %}">
             <div class="{% block page_container_class %}page-container{% endblock %}">
