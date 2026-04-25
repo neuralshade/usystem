@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from app.extensions import db, bcrypt
 from app.models.models import User, MentorStudent, Meeting, Class, ClassEnrollment, File
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
+from app.models.models import StudyPlan, StudyTask, ExamResult
 
 api_bp = Blueprint('api', __name__)
 
@@ -178,3 +179,55 @@ def upload_file():
 def get_files():
     files = File.query.all()
     return jsonify([{"id": f.id, "filename": f.filename} for f in files]), 200
+
+@api_bp.route('/my-mentor', methods=['GET'])
+@jwt_required()
+def get_my_mentor():
+    current_user_id = int(get_jwt_identity())
+    relation = MentorStudent.query.filter_by(student_id=current_user_id).first()
+    if not relation:
+        return jsonify({"error": "Nenhum mentor atribuído"}), 404
+    mentor = User.query.get(relation.mentor_id)
+    return jsonify({"name": mentor.name, "whatsapp": mentor.whatsapp}), 200
+
+# Gerenciamento de Cronogramas e Metas (Acesso pelo Mentor e Aluno)
+@api_bp.route('/tasks', methods=['GET'])
+@jwt_required()
+def get_tasks():
+    current_user_id = int(get_jwt_identity())
+    # Simplificação: buscando as metas atreladas aos planos do aluno
+    plans = StudyPlan.query.filter_by(student_id=current_user_id).all()
+    plan_ids = [p.id for p in plans]
+    tasks = StudyTask.query.filter(StudyTask.plan_id.in_(plan_ids)).all()
+    return jsonify([{"id": t.id, "week_number": t.week_number, "description": t.description, "is_completed": t.is_completed} for t in tasks]), 200
+
+@api_bp.route('/tasks/<int:id>/toggle', methods=['POST'])
+@jwt_required()
+def toggle_task(id):
+    task = StudyTask.query.get_or_404(id)
+    task.is_completed = not task.is_completed
+    db.session.commit()
+    return jsonify({"message": "Status da meta atualizado", "is_completed": task.is_completed}), 200
+
+# Resultados de Simulados (Acompanhamento de Desempenho)
+@api_bp.route('/exam-results', methods=['GET', 'POST'])
+@jwt_required()
+def handle_exam_results():
+    current_user_id = int(get_jwt_identity())
+    
+    if request.method == 'POST':
+        data = request.get_json()
+        student_id = data.get('student_id', current_user_id) # Mentor pode postar para o aluno
+        new_result = ExamResult(
+            student_id=student_id,
+            exam_title=data.get('exam_title'),
+            score=data.get('score'),
+            date=data.get('date')
+        )
+        db.session.add(new_result)
+        db.session.commit()
+        return jsonify({"message": "Resultado salvo com sucesso"}), 201
+
+    # GET
+    results = ExamResult.query.filter_by(student_id=current_user_id).all()
+    return jsonify([{"id": r.id, "exam_title": r.exam_title, "score": r.score, "date": r.date} for r in results]), 200
